@@ -1,0 +1,71 @@
+name: bookmark-recall
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bookmark_recall}
+      POSTGRES_USER: ${POSTGRES_USER:-bookmark_recall}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bookmark_recall_local_only}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.13
+    environment:
+      MEILI_ENV: production
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-bookmark-recall-meili-local-key}
+    volumes:
+      - meili-data:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:7700/health"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  api:
+    build: .
+    environment: &app-environment
+      DATABASE_URL: postgres://${POSTGRES_USER:-bookmark_recall}:${POSTGRES_PASSWORD:-bookmark_recall_local_only}@postgres:5432/${POSTGRES_DB:-bookmark_recall}
+      MEILI_URL: http://meilisearch:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-bookmark-recall-meili-local-key}
+      EXTENSION_API_TOKEN: ${EXTENSION_API_TOKEN:-change-this-extension-token}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_TIMEOUT_MS: ${AI_TIMEOUT_MS:-15000}
+      WEB_ROOT: /app/apps/web/dist
+      MIGRATIONS_DIR: /app/packages/db/migrations
+      PORT: 3210
+    depends_on:
+      postgres: { condition: service_healthy }
+      meilisearch: { condition: service_healthy }
+    ports:
+      - "127.0.0.1:${PORT:-3210}:3210"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3210/api/v1/health').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 5s
+      timeout: 4s
+      retries: 30
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["node", "apps/worker/dist/index.js"]
+    environment: *app-environment
+    depends_on:
+      postgres: { condition: service_healthy }
+      meilisearch: { condition: service_healthy }
+      api: { condition: service_healthy }
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  meili-data:

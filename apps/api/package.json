@@ -1,0 +1,21 @@
+{
+  "name": "@bookmark-recall/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "node ../../scripts/build-node-app.mjs src/index.ts dist/index.js",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bookmark-recall/contracts": "*",
+    "@bookmark-recall/db": "*",
+    "@bookmark-recall/server": "*",
+    "@fastify/cors": "^11.0.0",
+    "@fastify/static": "^10.1.2",
+    "drizzle-orm": "0.45.2",
+    "fastify": "^5.0.0"
+  }
+}

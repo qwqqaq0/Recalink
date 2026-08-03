@@ -1,0 +1,4 @@
+[
+  { "query": "正文中独有的术语", "expectedUrl": "http://fixture-web/unique-term.html" },
+  { "query": "数据库索引没有使用", "expectedUrl": "http://fixture-web/postgres-plan.html" }
+]
