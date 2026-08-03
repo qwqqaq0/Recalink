@@ -40,4 +40,21 @@ describe("flattenEdgeTree", () => {
       folderExternalId: "2"
     });
   });
+
+  it("skips unsupported bookmark schemes without losing valid entries", () => {
+    const result = flattenEdgeTree([
+      {
+        id: "0",
+        title: "root",
+        children: [
+          { id: "1", title: "local", url: "file:///C:/notes.html" },
+          { id: "2", title: "bookmarklet", url: "javascript:void(0)" },
+          { id: "3", title: "web", url: "https://example.com" }
+        ]
+      }
+    ]);
+
+    expect(result.bookmarks.map((item) => item.id)).toEqual(["3"]);
+    expect(result.skippedBookmarks).toBe(2);
+  });
 });

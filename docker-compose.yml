@@ -37,6 +37,7 @@ services:
       MEILI_URL: http://meilisearch:7700
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-bookmark-recall-meili-local-key}
       EXTENSION_API_TOKEN: ${EXTENSION_API_TOKEN:-change-this-extension-token}
+      EXTENSION_ORIGINS: ${EXTENSION_ORIGINS:-}
       AI_BASE_URL: ${AI_BASE_URL:-}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-}

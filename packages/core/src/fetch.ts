@@ -1,12 +1,20 @@
 import { lookup } from "node:dns/promises";
-import { isIP } from "node:net";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { isIP, type LookupFunction } from "node:net";
+import { Readable } from "node:stream";
 import { assertPublicAddress } from "./network.js";
 
 type Resolver = (hostname: string) => Promise<string[]>;
+type PinnedFetcher = (
+  url: URL,
+  address: string,
+  signal: AbortSignal
+) => Promise<Response>;
 
 export interface FetchPublicHtmlOptions {
   resolver?: Resolver;
-  fetcher?: typeof fetch;
+  fetcher?: PinnedFetcher;
   timeoutMs?: number;
   maxBytes?: number;
   maxRedirects?: number;
@@ -23,6 +31,60 @@ const defaultResolver: Resolver = async (hostname) => {
   const results = await lookup(unwrapped, { all: true, verbatim: true });
   return results.map((result) => result.address);
 };
+
+function responseHeaders(
+  source: Record<string, string | string[] | undefined>
+): Headers {
+  const headers = new Headers();
+  for (const [name, value] of Object.entries(source)) {
+    if (Array.isArray(value)) {
+      for (const item of value) headers.append(name, item);
+    } else if (value !== undefined) {
+      headers.set(name, value);
+    }
+  }
+  return headers;
+}
+
+const fetchPinned: PinnedFetcher = async (url, address, signal) =>
+  new Promise<Response>((resolve, reject) => {
+    const family = isIP(address);
+    if (family !== 4 && family !== 6) {
+      reject(new Error("DNS 返回了无效 IP 地址"));
+      return;
+    }
+    const pinnedLookup: LookupFunction = (_hostname, _options, callback) =>
+      callback(null, address, family);
+    const request = (url.protocol === "https:" ? httpsRequest : httpRequest)(
+      url,
+      {
+        lookup: pinnedLookup,
+        signal,
+        headers: {
+          accept: "text/html,application/xhtml+xml",
+          "user-agent": "BookmarkRecall/0.1 (+local personal indexer)"
+        }
+      },
+      (incoming) => {
+        const status = incoming.statusCode ?? 500;
+        const hasBody = status !== 204 && status !== 205 && status !== 304;
+        const body = hasBody
+          ? (Readable.toWeb(incoming) as ReadableStream<Uint8Array>)
+          : null;
+        resolve(
+          new Response(body, {
+            status,
+            ...(incoming.statusMessage
+              ? { statusText: incoming.statusMessage }
+              : {}),
+            headers: responseHeaders(incoming.headers)
+          })
+        );
+      }
+    );
+    request.on("error", reject);
+    request.end();
+  });
 
 async function readBoundedText(
   response: Response,
@@ -54,7 +116,7 @@ export async function fetchPublicHtml(
   options: FetchPublicHtmlOptions = {}
 ): Promise<PublicHtmlResult> {
   const resolver = options.resolver ?? defaultResolver;
-  const fetcher = options.fetcher ?? fetch;
+  const fetcher = options.fetcher ?? fetchPinned;
   const timeoutMs = options.timeoutMs ?? 10_000;
   const maxBytes = options.maxBytes ?? 5 * 1024 * 1024;
   const maxRedirects = options.maxRedirects ?? 5;
@@ -69,14 +131,11 @@ export async function fetchPublicHtml(
     if (addresses.length === 0) throw new Error("域名未解析到任何地址");
     for (const address of addresses) assertPublicAddress(address);
 
-    const response = await fetcher(currentUrl, {
-      redirect: "manual",
-      signal: AbortSignal.timeout(timeoutMs),
-      headers: {
-        accept: "text/html,application/xhtml+xml",
-        "user-agent": "BookmarkRecall/0.1 (+local personal indexer)"
-      }
-    });
+    const response = await fetcher(
+      currentUrl,
+      addresses[0]!,
+      AbortSignal.timeout(timeoutMs)
+    );
 
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get("location");

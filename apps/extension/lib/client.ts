@@ -34,13 +34,14 @@ export async function apiRequest<T>(
   authenticated = true
 ): Promise<T> {
   const config = await getConfig();
+  const includeToken = authenticated || path.startsWith("/search");
   const response = await fetch(`${config.apiUrl}/api/v1${path}`, {
     ...init,
     headers: {
       ...(init?.body !== undefined
         ? { "content-type": "application/json" }
         : {}),
-      ...(authenticated && config.token
+      ...(includeToken && config.token
         ? { authorization: `Bearer ${config.token}` }
         : {}),
       ...init?.headers

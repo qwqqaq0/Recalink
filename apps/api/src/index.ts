@@ -59,21 +59,35 @@ const app = buildApp({
   }
 });
 
+const configuredExtensionOrigins = new Set(
+  (process.env.EXTENSION_ORIGINS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
 await app.register(cors, {
   origin: (origin, callback) => {
+    const isExtension =
+      origin?.startsWith("chrome-extension://") ||
+      origin?.startsWith("extension://");
+    const extensionAllowed =
+      isExtension &&
+      (configuredExtensionOrigins.size === 0 ||
+        configuredExtensionOrigins.has(origin!));
     const allowed =
-      !origin ||
-      origin.startsWith("chrome-extension://") ||
-      origin.startsWith("extension://") ||
-      origin.startsWith("http://127.0.0.1:");
-    callback(allowed ? null : new Error("不允许的来源"), allowed);
+      !origin || origin.startsWith("http://127.0.0.1:") || extensionAllowed;
+    callback(allowed ? null : new Error("不允许的来源"), Boolean(allowed));
   }
 });
 
 const webRoot = resolve(process.env.WEB_ROOT ?? "apps/web/dist");
 if (existsSync(webRoot)) {
   await app.register(fastifyStatic, { root: webRoot, wildcard: false });
-  app.setNotFoundHandler((_request, reply) => reply.sendFile("index.html"));
+  app.setNotFoundHandler((request, reply) =>
+    request.url.startsWith("/api/")
+      ? reply.status(404).send({ error: "API 路径不存在" })
+      : reply.sendFile("index.html")
+  );
 }
 
 const close = async () => {

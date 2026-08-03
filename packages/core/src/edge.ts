@@ -15,12 +15,23 @@ export interface FlatEdgeBookmark {
   dateAdded?: number;
 }
 
+function isSupportedUrl(value: string): boolean {
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function flattenEdgeTree(nodes: EdgeSyncNode[]): {
   folders: FlatEdgeFolder[];
   bookmarks: FlatEdgeBookmark[];
+  skippedBookmarks: number;
 } {
   const folders: FlatEdgeFolder[] = [];
   const bookmarks: FlatEdgeBookmark[] = [];
+  let skippedBookmarks = 0;
 
   const visit = (
     node: EdgeSyncNode,
@@ -28,6 +39,10 @@ export function flattenEdgeTree(nodes: EdgeSyncNode[]): {
     isRoot: boolean
   ): void => {
     if (node.url) {
+      if (!isSupportedUrl(node.url)) {
+        skippedBookmarks += 1;
+        return;
+      }
       bookmarks.push({
         id: node.id,
         title: node.title,
@@ -53,5 +68,5 @@ export function flattenEdgeTree(nodes: EdgeSyncNode[]): {
   };
 
   for (const node of nodes) visit(node, "", true);
-  return { folders, bookmarks };
+  return { folders, bookmarks, skippedBookmarks };
 }

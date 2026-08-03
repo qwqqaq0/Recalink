@@ -23,14 +23,39 @@ type DatabaseTransaction = Parameters<
 >[0];
 type DatabaseExecutor = Database | DatabaseTransaction;
 
+interface EdgeUpsertResult {
+  bookmarkId: string;
+  affectedBookmarkIds: string[];
+  active: boolean;
+}
+
+export interface EdgeMutationResult {
+  bookmarkId?: string;
+  affectedBookmarkIds: string[];
+}
+
+function isSupportedUrl(value: string): boolean {
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export class BookmarkRepository {
   constructor(private readonly db: Database) {}
 
-  async syncEdgeTree(
-    nodes: EdgeSyncNode[]
-  ): Promise<{ bookmarks: number; folders: number; bookmarkIds: string[] }> {
+  async syncEdgeTree(nodes: EdgeSyncNode[]): Promise<{
+    bookmarks: number;
+    folders: number;
+    skippedBookmarks: number;
+    bookmarkIds: string[];
+    affectedBookmarkIds: string[];
+  }> {
     const flattened = flattenEdgeTree(nodes);
-    const bookmarkIds: string[] = [];
+    const bookmarkIds = new Set<string>();
+    const affectedBookmarkIds = new Set<string>();
     await this.db.transaction(async (tx) => {
       for (const folder of flattened.folders) {
         await tx
@@ -56,12 +81,14 @@ export class BookmarkRepository {
         knownFolders.map((folder) => [folder.externalId, folder.id])
       );
       for (const node of flattened.bookmarks) {
-        const bookmarkId = await this.upsertEdgeBookmark(
+        const result = await this.upsertEdgeBookmark(
           node,
           folderIdByExternal.get(node.folderExternalId ?? ""),
           tx
         );
-        bookmarkIds.push(bookmarkId);
+        if (result.active) bookmarkIds.add(result.bookmarkId);
+        for (const id of result.affectedBookmarkIds)
+          affectedBookmarkIds.add(id);
       }
       const activeIds = new Set(flattened.bookmarks.map((item) => item.id));
       const existingSources = await tx.select().from(bookmarkSources);
@@ -72,118 +99,173 @@ export class BookmarkRepository {
             .set({ tombstonedAt: new Date(), updatedAt: new Date() })
             .where(eq(bookmarkSources.id, source.id));
           await this.removeIfOrphaned(source.bookmarkId, tx);
+          affectedBookmarkIds.add(source.bookmarkId);
         }
       }
     });
     return {
       bookmarks: flattened.bookmarks.length,
       folders: flattened.folders.length,
-      bookmarkIds
+      skippedBookmarks: flattened.skippedBookmarks,
+      bookmarkIds: [...bookmarkIds],
+      affectedBookmarkIds: [...affectedBookmarkIds]
     };
   }
 
-  async applyEdgeEvent(event: EdgeEvent): Promise<string | undefined> {
-    if (event.type === "removed") {
-      const source = await this.db.query.bookmarkSources.findFirst({
-        where: eq(bookmarkSources.externalId, event.id)
-      });
-      if (!source) return undefined;
-      await this.db
-        .update(bookmarkSources)
-        .set({ tombstonedAt: new Date(), updatedAt: new Date() })
-        .where(eq(bookmarkSources.id, source.id));
-      await this.removeIfOrphaned(source.bookmarkId, this.db);
-      return source.bookmarkId;
-    }
-    if (!event.node.url) return undefined;
+  async applyEdgeEvent(event: EdgeEvent): Promise<EdgeMutationResult> {
+    if (event.type === "removed") return this.removeEdgeSource(event.id);
+    if (!event.node.url) return { affectedBookmarkIds: [] };
+    if (!isSupportedUrl(event.node.url))
+      return this.removeEdgeSource(event.node.id);
     const folder = event.node.parentId
       ? await this.db.query.folders.findFirst({
           where: eq(folders.externalId, event.node.parentId)
         })
       : undefined;
-    return this.upsertEdgeBookmark(
-      {
-        id: event.node.id,
-        title: event.node.title,
-        url: event.node.url,
-        ...(event.node.parentId
-          ? { folderExternalId: event.node.parentId }
-          : {}),
-        ...(event.node.dateAdded !== undefined
-          ? { dateAdded: event.node.dateAdded }
-          : {})
-      },
-      folder?.id,
-      this.db
+    const result = await this.db.transaction((tx) =>
+      this.upsertEdgeBookmark(
+        {
+          id: event.node.id,
+          title: event.node.title,
+          url: event.node.url!,
+          ...(event.node.parentId
+            ? { folderExternalId: event.node.parentId }
+            : {}),
+          ...(event.node.dateAdded !== undefined
+            ? { dateAdded: event.node.dateAdded }
+            : {})
+        },
+        folder?.id,
+        tx
+      )
     );
+    return {
+      ...(result.active ? { bookmarkId: result.bookmarkId } : {}),
+      affectedBookmarkIds: result.affectedBookmarkIds
+    };
+  }
+
+  private async removeEdgeSource(
+    externalId: string
+  ): Promise<EdgeMutationResult> {
+    return this.db.transaction(async (tx) => {
+      const source = await tx.query.bookmarkSources.findFirst({
+        where: eq(bookmarkSources.externalId, externalId)
+      });
+      if (!source) return { affectedBookmarkIds: [] };
+      if (!source.tombstonedAt) {
+        await tx
+          .update(bookmarkSources)
+          .set({ tombstonedAt: new Date(), updatedAt: new Date() })
+          .where(eq(bookmarkSources.id, source.id));
+        await this.removeIfOrphaned(source.bookmarkId, tx);
+      }
+      return {
+        bookmarkId: source.bookmarkId,
+        affectedBookmarkIds: [source.bookmarkId]
+      };
+    });
   }
 
   async saveCapture(payload: CapturePayload): Promise<string> {
-    const normalizedUrl = normalizeUrl(payload.url);
-    const domain = new URL(normalizedUrl).hostname;
-    const [bookmark] = await this.db
-      .insert(bookmarks)
-      .values({
-        normalizedUrl,
-        url: payload.url,
-        title: payload.title,
-        description: payload.description,
-        domain,
-        captureStatus: "ready"
-      })
-      .onConflictDoUpdate({
-        target: bookmarks.normalizedUrl,
-        set: {
+    return this.db.transaction(async (tx) => {
+      const normalizedUrl = normalizeUrl(payload.url);
+      const domain = new URL(normalizedUrl).hostname;
+      const [bookmark] = await tx
+        .insert(bookmarks)
+        .values({
+          normalizedUrl,
           url: payload.url,
           title: payload.title,
           description: payload.description,
           domain,
-          captureStatus: "ready",
-          lastError: null,
-          removedAt: null,
-          updatedAt: new Date()
-        }
-      })
-      .returning({ id: bookmarks.id });
-    if (!bookmark) throw new Error("保存书签失败");
-
-    if (payload.sourceBookmarkId) {
-      const folder = payload.folderExternalId
-        ? await this.db.query.folders.findFirst({
-            where: eq(folders.externalId, payload.folderExternalId)
-          })
-        : undefined;
-      await this.db
-        .insert(bookmarkSources)
-        .values({
-          bookmarkId: bookmark.id,
-          externalId: payload.sourceBookmarkId,
-          sourceTitle: payload.title,
-          folderId: folder?.id ?? null
+          captureStatus: "ready"
         })
         .onConflictDoUpdate({
-          target: bookmarkSources.externalId,
+          target: bookmarks.normalizedUrl,
           set: {
-            bookmarkId: bookmark.id,
-            sourceTitle: payload.title,
-            folderId: folder?.id ?? null,
+            url: payload.url,
+            title: payload.title,
+            description: payload.description,
+            domain,
+            captureStatus: "ready",
+            lastError: null,
+            removedAt: null,
             updatedAt: new Date()
           }
-        });
-    }
+        })
+        .returning({ id: bookmarks.id });
+      if (!bookmark) throw new Error("保存书签失败");
 
+      if (payload.sourceBookmarkId) {
+        const folder = payload.folderExternalId
+          ? await tx.query.folders.findFirst({
+              where: eq(folders.externalId, payload.folderExternalId)
+            })
+          : undefined;
+        await tx
+          .insert(bookmarkSources)
+          .values({
+            bookmarkId: bookmark.id,
+            externalId: payload.sourceBookmarkId,
+            sourceTitle: payload.title,
+            folderId: folder?.id ?? null
+          })
+          .onConflictDoUpdate({
+            target: bookmarkSources.externalId,
+            set: {
+              bookmarkId: bookmark.id,
+              sourceTitle: payload.title,
+              folderId: folder?.id ?? null,
+              updatedAt: new Date()
+            }
+          });
+      }
+
+      await this.writePageContent(bookmark.id, payload, tx);
+      return bookmark.id;
+    });
+  }
+
+  async saveCaptureForBookmark(
+    bookmarkId: string,
+    payload: CapturePayload
+  ): Promise<boolean> {
+    return this.db.transaction(async (tx) => {
+      const [active] = await tx
+        .update(bookmarks)
+        .set({
+          title: payload.title,
+          description: payload.description,
+          captureStatus: "ready",
+          lastError: null,
+          updatedAt: new Date()
+        })
+        .where(and(eq(bookmarks.id, bookmarkId), isNull(bookmarks.removedAt)))
+        .returning({ id: bookmarks.id });
+      if (!active) return false;
+      await this.writePageContent(bookmarkId, payload, tx);
+      return true;
+    });
+  }
+
+  private async writePageContent(
+    bookmarkId: string,
+    payload: CapturePayload,
+    database: DatabaseExecutor
+  ): Promise<void> {
     const contentHash = createHash("sha256")
       .update(payload.plainText)
       .digest("hex");
-    await this.db
+    await database
       .insert(pageContents)
       .values({
-        bookmarkId: bookmark.id,
+        bookmarkId,
         headings: payload.headings,
         plainText: payload.plainText,
         language: payload.language,
         contentHash,
-        extractionMethod: "readability"
+        extractionMethod: payload.extractionMethod
       })
       .onConflictDoUpdate({
         target: pageContents.bookmarkId,
@@ -192,11 +274,10 @@ export class BookmarkRepository {
           plainText: payload.plainText,
           language: payload.language,
           contentHash,
-          extractionMethod: "readability",
+          extractionMethod: payload.extractionMethod,
           extractedAt: new Date()
         }
       });
-    return bookmark.id;
   }
 
   async createLocal(url: string, title: string, note: string): Promise<string> {
@@ -283,19 +364,21 @@ export class BookmarkRepository {
   }
 
   async remove(id: string): Promise<void> {
-    await this.db
-      .update(bookmarks)
-      .set({ removedAt: new Date(), updatedAt: new Date() })
-      .where(eq(bookmarks.id, id));
-    await this.db
-      .update(bookmarkSources)
-      .set({ tombstonedAt: new Date(), updatedAt: new Date() })
-      .where(
-        and(
-          eq(bookmarkSources.bookmarkId, id),
-          isNull(bookmarkSources.tombstonedAt)
-        )
-      );
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(bookmarks)
+        .set({ removedAt: new Date(), updatedAt: new Date() })
+        .where(eq(bookmarks.id, id));
+      await tx
+        .update(bookmarkSources)
+        .set({ tombstonedAt: new Date(), updatedAt: new Date() })
+        .where(
+          and(
+            eq(bookmarkSources.bookmarkId, id),
+            isNull(bookmarkSources.tombstonedAt)
+          )
+        );
+    });
   }
 
   async markCaptureState(
@@ -310,7 +393,7 @@ export class BookmarkRepository {
         lastError: error ?? null,
         updatedAt: new Date()
       })
-      .where(eq(bookmarks.id, id));
+      .where(and(eq(bookmarks.id, id), isNull(bookmarks.removedAt)));
   }
 
   async buildSearchDocument(
@@ -356,8 +439,15 @@ export class BookmarkRepository {
     return tag;
   }
 
-  async deleteTag(id: string) {
-    await this.db.delete(tags).where(eq(tags.id, id));
+  async deleteTag(id: string): Promise<string[]> {
+    return this.db.transaction(async (tx) => {
+      const affected = await tx
+        .select({ bookmarkId: bookmarkTags.bookmarkId })
+        .from(bookmarkTags)
+        .where(eq(bookmarkTags.tagId, id));
+      await tx.delete(tags).where(eq(tags.id, id));
+      return [...new Set(affected.map((row) => row.bookmarkId))];
+    });
   }
 
   private async upsertEdgeBookmark(
@@ -370,7 +460,19 @@ export class BookmarkRepository {
     },
     folderId: string | undefined,
     database: DatabaseExecutor
-  ): Promise<string> {
+  ): Promise<EdgeUpsertResult> {
+    const existing = await database.query.bookmarkSources.findFirst({
+      where: eq(bookmarkSources.externalId, node.id)
+    });
+    // A project tombstone wins over later full-sync snapshots with the same Edge ID.
+    if (existing?.tombstonedAt) {
+      return {
+        bookmarkId: existing.bookmarkId,
+        affectedBookmarkIds: [existing.bookmarkId],
+        active: false
+      };
+    }
+
     const normalizedUrl = normalizeUrl(node.url);
     const [bookmark] = await database
       .insert(bookmarks)
@@ -387,14 +489,14 @@ export class BookmarkRepository {
           url: node.url,
           title: node.title,
           domain: new URL(normalizedUrl).hostname,
+          removedAt: null,
           updatedAt: new Date()
         }
       })
       .returning({ id: bookmarks.id });
-    if (!bookmark) throw new Error("同步Edge书签失败");
-    const existing = await database.query.bookmarkSources.findFirst({
-      where: eq(bookmarkSources.externalId, node.id)
-    });
+    if (!bookmark) throw new Error("同步 Edge 书签失败");
+
+    const affected = new Set([bookmark.id]);
     if (existing) {
       await database
         .update(bookmarkSources)
@@ -406,6 +508,10 @@ export class BookmarkRepository {
           updatedAt: new Date()
         })
         .where(eq(bookmarkSources.id, existing.id));
+      if (existing.bookmarkId !== bookmark.id) {
+        await this.removeIfOrphaned(existing.bookmarkId, database);
+        affected.add(existing.bookmarkId);
+      }
     } else {
       await database.insert(bookmarkSources).values({
         bookmarkId: bookmark.id,
@@ -414,12 +520,12 @@ export class BookmarkRepository {
         folderId: folderId ?? null,
         dateAdded: node.dateAdded ? new Date(node.dateAdded) : null
       });
-      await database
-        .update(bookmarks)
-        .set({ removedAt: null, updatedAt: new Date() })
-        .where(eq(bookmarks.id, bookmark.id));
     }
-    return bookmark.id;
+    return {
+      bookmarkId: bookmark.id,
+      affectedBookmarkIds: [...affected],
+      active: true
+    };
   }
 
   private async removeIfOrphaned(

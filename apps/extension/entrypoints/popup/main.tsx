@@ -201,7 +201,11 @@ function Popup() {
       <footer>
         <button
           onClick={() =>
-            void browser.tabs.create({ url: "http://127.0.0.1:3210" })
+            void getConfig().then((config) =>
+              browser.tabs.create({
+                url: config.apiUrl
+              })
+            )
           }
         >
           打开完整管理器 ↗

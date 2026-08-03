@@ -4,6 +4,7 @@ import {
   aiRerankSchema,
   capturePayloadSchema,
   edgeEventSchema,
+  edgeSyncSchema,
   searchQuerySchema
 } from "./index.js";
 
@@ -18,6 +19,7 @@ describe("capturePayloadSchema", () => {
       sourceBookmarkId: "42"
     });
     expect(parsed.sourceBookmarkId).toBe("42");
+    expect(parsed.extractionMethod).toBe("readability");
   });
 
   it("rejects oversized page content", () => {
@@ -31,14 +33,33 @@ describe("capturePayloadSchema", () => {
       })
     ).toThrow();
   });
+
+  it("rejects a non-HTTP explicit capture", () => {
+    expect(
+      capturePayloadSchema.safeParse({
+        url: "file:///C:/notes.html",
+        title: "local",
+        plainText: "text",
+        headings: []
+      }).success
+    ).toBe(false);
+  });
 });
 
-describe("edgeEventSchema", () => {
+describe("Edge contracts", () => {
   it("requires removed events to carry the external id", () => {
     expect(edgeEventSchema.parse({ type: "removed", id: "99" })).toEqual({
       type: "removed",
       id: "99"
     });
+  });
+
+  it("accepts unsupported Edge URLs for later per-item skipping", () => {
+    expect(
+      edgeSyncSchema.safeParse({
+        nodes: [{ id: "1", title: "local", url: "file:///C:/notes.html" }]
+      }).success
+    ).toBe(true);
   });
 });
 
@@ -52,7 +73,7 @@ describe("searchQuerySchema", () => {
 });
 
 describe("AI response contracts", () => {
-  it("caps alternate queries and rejects unknown rerank ids later at the service boundary", () => {
+  it("caps alternate queries and accepts structured rerank output", () => {
     expect(
       aiExpansionSchema.parse({
         alternateQueries: ["query planner"],

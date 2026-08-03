@@ -39,15 +39,25 @@ await boss.work<{ bookmarkId: string }>(CAPTURE_QUEUE, async ([job]) => {
         "metadata_only",
         "未提取到正文"
       );
-    } else {
-      await repository.saveCapture({
-        url: bookmark.url,
-        title: content.title || bookmark.title,
-        description: content.description || bookmark.description,
-        plainText: content.plainText,
-        headings: content.headings,
-        language: content.language
-      });
+      await boss.send(INDEX_QUEUE, { bookmarkId: bookmark.id });
+      return;
+    }
+
+    const saved = await repository.saveCaptureForBookmark(bookmark.id, {
+      url: bookmark.url,
+      title: content.title || bookmark.title,
+      description: content.description || bookmark.description,
+      plainText: content.plainText,
+      headings: content.headings,
+      language: content.language,
+      extractionMethod:
+        content.extractionMethod === "visible-text"
+          ? "visible_text"
+          : "readability"
+    });
+    if (!saved) {
+      await boss.send(INDEX_QUEUE, { bookmarkId: bookmark.id });
+      return;
     }
     await boss.send(INDEX_QUEUE, { bookmarkId: bookmark.id });
     if (tagSuggester) await boss.send(TAG_QUEUE, { bookmarkId: bookmark.id });
@@ -74,7 +84,8 @@ await boss.work<{ bookmarkId: string }>(INDEX_QUEUE, async ([job]) => {
 await boss.work<{ bookmarkId: string }>(TAG_QUEUE, async ([job]) => {
   if (!job || !tagSuggester) return;
   const bookmark = await repository.get(job.data.bookmarkId);
-  if (bookmark?.content) await tagSuggester.suggest(bookmark);
+  if (bookmark?.content && !bookmark.removedAt)
+    await tagSuggester.suggest(bookmark);
 });
 
 const close = async () => {
