@@ -14,7 +14,10 @@ export function normalizeUrl(input: string): string {
   const retained = [...url.searchParams.entries()]
     .filter(([name]) => {
       const normalizedName = name.toLowerCase();
-      return !normalizedName.startsWith("utm_") && !TRACKING_PARAMETERS.has(normalizedName);
+      return (
+        !normalizedName.startsWith("utm_") &&
+        !TRACKING_PARAMETERS.has(normalizedName)
+      );
     })
     .sort(([leftName, leftValue], [rightName, rightValue]) =>
       leftName === rightName
@@ -33,4 +36,3 @@ export function normalizeUrl(input: string): string {
 
   return url.toString();
 }
-

@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
-  "workspaces": ["apps/*", "packages/*"],
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
@@ -12,7 +17,7 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "format:check": "prettier --check .",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
     "dev:api": "npm run dev -w @bookmark-recall/api",
     "dev:worker": "npm run dev -w @bookmark-recall/worker",
     "dev:web": "npm run dev -w @bookmark-recall/web",
@@ -35,6 +40,10 @@
     "vite": "^7.3.6",
     "vitest": "^3.2.7"
   },
-  "dependencies": { "drizzle-orm": "^0.45.2" },
-  "overrides": { "esbuild": "$esbuild" }
+  "dependencies": {
+    "drizzle-orm": "^0.45.2"
+  },
+  "overrides": {
+    "esbuild": "$esbuild"
+  }
 }

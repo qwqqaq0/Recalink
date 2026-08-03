@@ -12,11 +12,17 @@ export interface ReadableContent {
   extractionMethod: "readability" | "visible-text";
 }
 
-export function clampPlainText(text: string, maxLength = MAX_CONTENT_CHARACTERS): string {
+export function clampPlainText(
+  text: string,
+  maxLength = MAX_CONTENT_CHARACTERS
+): string {
   return text.replace(/\s+/gu, " ").trim().slice(0, maxLength);
 }
 
-export function extractReadableContent(html: string, pageUrl: string): ReadableContent {
+export function extractReadableContent(
+  html: string,
+  pageUrl: string
+): ReadableContent {
   const dom = new JSDOM(html, { url: pageUrl });
   const document = dom.window.document;
 
@@ -28,7 +34,9 @@ export function extractReadableContent(html: string, pageUrl: string): ReadableC
 
   const title = clampPlainText(document.title, 500);
   const description = clampPlainText(
-    document.querySelector('meta[name="description"]')?.getAttribute("content") ?? "",
+    document
+      .querySelector('meta[name="description"]')
+      ?.getAttribute("content") ?? "",
     2_000
   );
   const language = document.documentElement.lang || "und";
@@ -52,4 +60,3 @@ export function extractReadableContent(html: string, pageUrl: string): ReadableC
     extractionMethod: readableText ? "readability" : "visible-text"
   };
 }
-

@@ -1,7 +1,16 @@
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
-COPY . .
+COPY package.json package-lock.json ./
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/extension/package.json ./apps/extension/package.json
+COPY apps/web/package.json ./apps/web/package.json
+COPY apps/worker/package.json ./apps/worker/package.json
+COPY packages/contracts/package.json ./packages/contracts/package.json
+COPY packages/core/package.json ./packages/core/package.json
+COPY packages/db/package.json ./packages/db/package.json
+COPY packages/server/package.json ./packages/server/package.json
 RUN npm ci
+COPY . .
 RUN npm run build --workspace @bookmark-recall/web \
  && npm run build --workspace @bookmark-recall/api \
  && npm run build --workspace @bookmark-recall/worker

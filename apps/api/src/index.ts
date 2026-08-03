@@ -5,8 +5,14 @@ import fastifyStatic from "@fastify/static";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { createDatabase } from "@bookmark-recall/db";
 import {
-  BookmarkRepository, createAiClientFromEnv, createQueue, LlmSearchAssistant,
-  MeiliBookmarkIndex, SearchService, startQueue, TagSuggestionRepository
+  BookmarkRepository,
+  createAiClientFromEnv,
+  createQueue,
+  LlmSearchAssistant,
+  MeiliBookmarkIndex,
+  SearchService,
+  startQueue,
+  TagSuggestionRepository
 } from "@bookmark-recall/server";
 import { buildApp } from "./app.js";
 
@@ -14,7 +20,11 @@ const extensionToken = process.env.EXTENSION_API_TOKEN;
 if (!extensionToken) throw new Error("缺少 EXTENSION_API_TOKEN");
 
 const { db, pool } = createDatabase();
-await migrate(db, { migrationsFolder: resolve(process.env.MIGRATIONS_DIR ?? "packages/db/migrations") });
+await migrate(db, {
+  migrationsFolder: resolve(
+    process.env.MIGRATIONS_DIR ?? "packages/db/migrations"
+  )
+});
 const repository = new BookmarkRepository(db);
 const tagSuggestions = new TagSuggestionRepository(db);
 const searchIndex = new MeiliBookmarkIndex();
@@ -36,8 +46,14 @@ const app = buildApp({
   queue: boss,
   health: async () => {
     const [database, search] = await Promise.all([
-      pool.query("select 1").then(() => true).catch(() => false),
-      searchIndex.client.health().then(() => true).catch(() => false)
+      pool
+        .query("select 1")
+        .then(() => true)
+        .catch(() => false),
+      searchIndex.client
+        .health()
+        .then(() => true)
+        .catch(() => false)
     ]);
     return { database, search, worker: true, ai: Boolean(aiClient) };
   }
@@ -45,7 +61,11 @@ const app = buildApp({
 
 await app.register(cors, {
   origin: (origin, callback) => {
-    const allowed = !origin || origin.startsWith("chrome-extension://") || origin.startsWith("extension://") || origin.startsWith("http://127.0.0.1:");
+    const allowed =
+      !origin ||
+      origin.startsWith("chrome-extension://") ||
+      origin.startsWith("extension://") ||
+      origin.startsWith("http://127.0.0.1:");
     callback(allowed ? null : new Error("不允许的来源"), allowed);
   }
 });
@@ -65,4 +85,3 @@ process.on("SIGINT", () => void close().finally(() => process.exit(0)));
 process.on("SIGTERM", () => void close().finally(() => process.exit(0)));
 
 await app.listen({ host: "0.0.0.0", port: Number(process.env.PORT ?? 3210) });
-

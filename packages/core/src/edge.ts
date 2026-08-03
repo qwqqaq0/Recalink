@@ -22,7 +22,11 @@ export function flattenEdgeTree(nodes: EdgeSyncNode[]): {
   const folders: FlatEdgeFolder[] = [];
   const bookmarks: FlatEdgeBookmark[] = [];
 
-  const visit = (node: EdgeSyncNode, parentPath: string, isRoot: boolean): void => {
+  const visit = (
+    node: EdgeSyncNode,
+    parentPath: string,
+    isRoot: boolean
+  ): void => {
     if (node.url) {
       bookmarks.push({
         id: node.id,
@@ -34,7 +38,9 @@ export function flattenEdgeTree(nodes: EdgeSyncNode[]): {
       return;
     }
 
-    const path = isRoot ? parentPath : [parentPath, node.title].filter(Boolean).join("/");
+    const path = isRoot
+      ? parentPath
+      : [parentPath, node.title].filter(Boolean).join("/");
     if (!isRoot) {
       folders.push({
         id: node.id,
@@ -49,4 +55,3 @@ export function flattenEdgeTree(nodes: EdgeSyncNode[]): {
   for (const node of nodes) visit(node, "", true);
   return { folders, bookmarks };
 }
-

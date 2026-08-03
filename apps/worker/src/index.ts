@@ -1,9 +1,16 @@
 import { createDatabase } from "@bookmark-recall/db";
 import { extractReadableContent, fetchPublicHtml } from "@bookmark-recall/core";
 import {
-  BookmarkRepository, CAPTURE_QUEUE, createAiClientFromEnv, createQueue,
-  INDEX_QUEUE, LlmTagSuggester, MeiliBookmarkIndex, startQueue,
-  TAG_QUEUE, TagSuggestionRepository
+  BookmarkRepository,
+  CAPTURE_QUEUE,
+  createAiClientFromEnv,
+  createQueue,
+  INDEX_QUEUE,
+  LlmTagSuggester,
+  MeiliBookmarkIndex,
+  startQueue,
+  TAG_QUEUE,
+  TagSuggestionRepository
 } from "@bookmark-recall/server";
 
 const { db, pool } = createDatabase();
@@ -14,7 +21,9 @@ const boss = createQueue();
 await startQueue(boss);
 const aiClient = createAiClientFromEnv();
 const tagRepository = new TagSuggestionRepository(db);
-const tagSuggester = aiClient ? new LlmTagSuggester(aiClient, tagRepository) : undefined;
+const tagSuggester = aiClient
+  ? new LlmTagSuggester(aiClient, tagRepository)
+  : undefined;
 
 await boss.work<{ bookmarkId: string }>(CAPTURE_QUEUE, async ([job]) => {
   if (!job) return;
@@ -25,7 +34,11 @@ await boss.work<{ bookmarkId: string }>(CAPTURE_QUEUE, async ([job]) => {
     const fetched = await fetchPublicHtml(bookmark.url);
     const content = extractReadableContent(fetched.html, fetched.finalUrl);
     if (!content.plainText) {
-      await repository.markCaptureState(bookmark.id, "metadata_only", "未提取到正文");
+      await repository.markCaptureState(
+        bookmark.id,
+        "metadata_only",
+        "未提取到正文"
+      );
     } else {
       await repository.saveCapture({
         url: bookmark.url,
@@ -41,7 +54,11 @@ await boss.work<{ bookmarkId: string }>(CAPTURE_QUEUE, async ([job]) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : "网页采集失败";
     const metadataOnly = message.includes("仅支持 HTML 页面");
-    await repository.markCaptureState(bookmark.id, metadataOnly ? "metadata_only" : "failed", message);
+    await repository.markCaptureState(
+      bookmark.id,
+      metadataOnly ? "metadata_only" : "failed",
+      message
+    );
     await boss.send(INDEX_QUEUE, { bookmarkId: bookmark.id });
     if (!metadataOnly) throw error;
   }

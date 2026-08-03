@@ -20,4 +20,3 @@ describe("extractReadableContent", () => {
     expect(result.language).toBe("zh-CN");
   });
 });
-

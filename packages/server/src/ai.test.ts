@@ -4,7 +4,12 @@ import { OpenAiCompatibleClient, parseModelJson } from "./ai.js";
 
 describe("parseModelJson", () => {
   it("parses JSON returned inside a markdown fence", () => {
-    expect(parseModelJson("```json\n{\"value\":42}\n```", z.object({ value: z.number() }))).toEqual({ value: 42 });
+    expect(
+      parseModelJson(
+        '```json\n{"value":42}\n```',
+        z.object({ value: z.number() })
+      )
+    ).toEqual({ value: 42 });
   });
 });
 
@@ -17,13 +22,21 @@ describe("OpenAiCompatibleClient", () => {
       model: "test-model",
       fetcher: async (input) => {
         calls.push(String(input));
-        return new Response(JSON.stringify({ choices: [{ message: { content: '{"answer":"ok"}' } }] }), {
-          headers: { "content-type": "application/json" }
-        });
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: '{"answer":"ok"}' } }]
+          }),
+          {
+            headers: { "content-type": "application/json" }
+          }
+        );
       }
     });
 
-    const result = await client.generate("return json", z.object({ answer: z.string() }));
+    const result = await client.generate(
+      "return json",
+      z.object({ answer: z.string() })
+    );
     expect(result.answer).toBe("ok");
     expect(calls).toEqual(["http://model.local/v1/chat/completions"]);
   });

@@ -35,7 +35,10 @@ export class OpenAiCompatibleClient {
           model: this.#config.model,
           temperature: 0,
           messages: [
-            { role: "system", content: "只返回符合要求的 JSON，不要添加解释或 Markdown。" },
+            {
+              role: "system",
+              content: "只返回符合要求的 JSON，不要添加解释或 Markdown。"
+            },
             { role: "user", content: prompt }
           ]
         }),
@@ -43,7 +46,7 @@ export class OpenAiCompatibleClient {
       }
     );
     if (!response.ok) throw new Error(`AI 请求失败：HTTP ${response.status}`);
-    const payload = await response.json() as {
+    const payload = (await response.json()) as {
       choices?: Array<{ message?: { content?: string } }>;
     };
     const content = payload.choices?.[0]?.message?.content;

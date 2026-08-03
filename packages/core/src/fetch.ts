@@ -24,7 +24,10 @@ const defaultResolver: Resolver = async (hostname) => {
   return results.map((result) => result.address);
 };
 
-async function readBoundedText(response: Response, maxBytes: number): Promise<string> {
+async function readBoundedText(
+  response: Response,
+  maxBytes: number
+): Promise<string> {
   const declaredLength = Number(response.headers.get("content-length") ?? "0");
   if (declaredLength > maxBytes) throw new Error("页面响应超过 5MB 限制");
   if (!response.body) return "";
@@ -84,12 +87,19 @@ export async function fetchPublicHtml(
     }
 
     if (!response.ok) throw new Error(`页面请求失败：HTTP ${response.status}`);
-    const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
-    if (!contentType.includes("text/html") && !contentType.includes("application/xhtml+xml")) {
+    const contentType =
+      response.headers.get("content-type")?.toLowerCase() ?? "";
+    if (
+      !contentType.includes("text/html") &&
+      !contentType.includes("application/xhtml+xml")
+    ) {
       throw new Error("仅支持 HTML 页面");
     }
 
-    return { html: await readBoundedText(response, maxBytes), finalUrl: currentUrl.toString() };
+    return {
+      html: await readBoundedText(response, maxBytes),
+      finalUrl: currentUrl.toString()
+    };
   }
 
   throw new Error("页面重定向次数超过限制");

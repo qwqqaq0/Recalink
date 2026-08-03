@@ -4,7 +4,8 @@ coverage/
 .env
 .wxt/
 .output/
+.playwright-cli/
+output/playwright/
 playwright-report/
 test-results/
 *.log
-

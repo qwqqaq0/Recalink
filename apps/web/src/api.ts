@@ -1,4 +1,8 @@
-export interface Tag { id: string; name: string; createdBy?: "manual" | "ai"; }
+export interface Tag {
+  id: string;
+  name: string;
+  createdBy?: "manual" | "ai";
+}
 
 export interface SearchHit {
   id: string;
@@ -49,16 +53,27 @@ export interface BookmarkDetail {
   lastError: string | null;
   tags: Tag[];
   suggestions: Suggestion[];
-  content?: { plainText: string; headings: string[]; extractionMethod: string } | null;
+  content?: {
+    plainText: string;
+    headings: string[];
+    extractionMethod: string;
+  } | null;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api/v1${path}`, {
     ...init,
-    headers: { ...(init?.body !== undefined ? { "content-type": "application/json" } : {}), ...init?.headers }
+    headers: {
+      ...(init?.body !== undefined
+        ? { "content-type": "application/json" }
+        : {}),
+      ...init?.headers
+    }
   });
   if (!response.ok) {
-    const payload = await response.json().catch(() => ({})) as { error?: string };
+    const payload = (await response.json().catch(() => ({}))) as {
+      error?: string;
+    };
     throw new Error(payload.error ?? `请求失败（${response.status}）`);
   }
   return response.json() as Promise<T>;
@@ -67,14 +82,27 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   health: () => request<Health>("/health"),
   tags: () => request<Tag[]>("/tags"),
-  createTag: (name: string) => request<Tag>("/tags", { method: "POST", body: JSON.stringify({ name }) }),
-  deleteTag: (id: string) => request<{ ok: true }>(`/tags/${id}`, { method: "DELETE" }),
-  search: (params: URLSearchParams) => request<SearchResponse>(`/search?${params.toString()}`),
+  createTag: (name: string) =>
+    request<Tag>("/tags", { method: "POST", body: JSON.stringify({ name }) }),
+  deleteTag: (id: string) =>
+    request<{ ok: true }>(`/tags/${id}`, { method: "DELETE" }),
+  search: (params: URLSearchParams) =>
+    request<SearchResponse>(`/search?${params.toString()}`),
   bookmark: (id: string) => request<BookmarkDetail>(`/bookmarks/${id}`),
-  updateBookmark: (id: string, body: { titleOverride: string | null; note: string; tagIds: string[] }) =>
-    request<{ ok: true }>(`/bookmarks/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-  removeBookmark: (id: string) => request<{ ok: true }>(`/bookmarks/${id}`, { method: "DELETE" }),
-  recapture: (id: string) => request<{ ok: true }>(`/bookmarks/${id}/recapture`, { method: "POST" }),
+  updateBookmark: (
+    id: string,
+    body: { titleOverride: string | null; note: string; tagIds: string[] }
+  ) =>
+    request<{ ok: true }>(`/bookmarks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body)
+    }),
+  removeBookmark: (id: string) =>
+    request<{ ok: true }>(`/bookmarks/${id}`, { method: "DELETE" }),
+  recapture: (id: string) =>
+    request<{ ok: true }>(`/bookmarks/${id}/recapture`, { method: "POST" }),
   resolveSuggestion: (id: string, decision: "accepted" | "rejected") =>
-    request<{ ok: true }>(`/tag-suggestions/${id}/${decision}`, { method: "POST" })
+    request<{ ok: true }>(`/tag-suggestions/${id}/${decision}`, {
+      method: "POST"
+    })
 };

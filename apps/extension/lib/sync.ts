@@ -8,7 +8,12 @@ export interface BookmarkNodeLike {
 }
 
 export interface SyncNode {
-  id: string; parentId?: string; title: string; url?: string; dateAdded?: number; children?: SyncNode[];
+  id: string;
+  parentId?: string;
+  title: string;
+  url?: string;
+  dateAdded?: number;
+  children?: SyncNode[];
 }
 
 export function bookmarkNodeToSyncNode(node: BookmarkNodeLike): SyncNode {
@@ -18,12 +23,17 @@ export function bookmarkNodeToSyncNode(node: BookmarkNodeLike): SyncNode {
     title: node.title,
     ...(node.url ? { url: node.url } : {}),
     ...(node.dateAdded !== undefined ? { dateAdded: node.dateAdded } : {}),
-    ...(node.children ? { children: node.children.map(bookmarkNodeToSyncNode) } : {})
+    ...(node.children
+      ? { children: node.children.map(bookmarkNodeToSyncNode) }
+      : {})
   };
 }
 
 export function createdEvent(id: string, node: BookmarkNodeLike) {
-  return { type: "created" as const, node: bookmarkNodeToSyncNode({ ...node, id }) };
+  return {
+    type: "created" as const,
+    node: bookmarkNodeToSyncNode({ ...node, id })
+  };
 }
 
 export function changedEvent(node: BookmarkNodeLike) {
@@ -34,4 +44,6 @@ export function movedEvent(node: BookmarkNodeLike) {
   return { type: "moved" as const, node: bookmarkNodeToSyncNode(node) };
 }
 
-export function removedEvent(id: string) { return { type: "removed" as const, id }; }
+export function removedEvent(id: string) {
+  return { type: "removed" as const, id };
+}

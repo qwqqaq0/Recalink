@@ -61,8 +61,9 @@ describe("AI response contracts", () => {
     ).toEqual({ alternateQueries: ["query planner"], keywords: ["EXPLAIN"] });
 
     expect(
-      aiRerankSchema.parse({ results: [{ bookmarkId: "id-1", reason: "命中查询计划" }] })
+      aiRerankSchema.parse({
+        results: [{ bookmarkId: "id-1", reason: "命中查询计划" }]
+      })
     ).toEqual({ results: [{ bookmarkId: "id-1", reason: "命中查询计划" }] });
   });
 });
-

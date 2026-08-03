@@ -4,7 +4,9 @@ import { normalizeUrl } from "./url.js";
 describe("normalizeUrl", () => {
   it("removes fragments, default ports, and tracking parameters", () => {
     expect(
-      normalizeUrl("HTTPS://Example.COM:443/path/?utm_source=x&keep=1&fbclid=y#part")
+      normalizeUrl(
+        "HTTPS://Example.COM:443/path/?utm_source=x&keep=1&fbclid=y#part"
+      )
     ).toBe("https://example.com/path?keep=1");
   });
 
@@ -15,7 +17,8 @@ describe("normalizeUrl", () => {
   });
 
   it("rejects unsupported protocols", () => {
-    expect(() => normalizeUrl("file:///tmp/private.txt")).toThrow("仅支持 HTTP(S) URL");
+    expect(() => normalizeUrl("file:///tmp/private.txt")).toThrow(
+      "仅支持 HTTP(S) URL"
+    );
   });
 });
-

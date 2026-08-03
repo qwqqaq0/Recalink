@@ -9,4 +9,3 @@ export function createDatabase(connectionString = process.env.DATABASE_URL) {
 }
 
 export type Database = ReturnType<typeof createDatabase>["db"];
-

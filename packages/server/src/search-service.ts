@@ -1,4 +1,7 @@
-import { reciprocalRankFusion, restrictRerankToCandidates } from "@bookmark-recall/core";
+import {
+  reciprocalRankFusion,
+  restrictRerankToCandidates
+} from "@bookmark-recall/core";
 import type { AiExpansion } from "@bookmark-recall/contracts";
 
 export interface SearchHit {
@@ -29,7 +32,10 @@ export interface SearchBackend {
 
 export interface AiSearchAssistant {
   expand(query: string): Promise<AiExpansion>;
-  rerank(query: string, candidates: SearchHit[]): Promise<Array<{ bookmarkId: string; reason: string }>>;
+  rerank(
+    query: string,
+    candidates: SearchHit[]
+  ): Promise<Array<{ bookmarkId: string; reason: string }>>;
 }
 
 export interface SearchInput extends BackendSearchOptions {
@@ -70,7 +76,11 @@ export class SearchService {
       const rankings: string[][] = [basic.map((item) => item.id)];
       const byId = new Map(basic.map((item) => [item.id, item]));
       for (const query of expandedQueries) {
-        const hits = await this.backend.search(query, { ...input, page: 1, limit: 30 });
+        const hits = await this.backend.search(query, {
+          ...input,
+          page: 1,
+          limit: 30
+        });
         rankings.push(hits.map((item) => item.id));
         for (const hit of hits) byId.set(hit.id, hit);
       }
@@ -83,7 +93,9 @@ export class SearchService {
       const safeOrder = restrictRerankToCandidates(fusedIds, proposed);
       const items = safeOrder.flatMap((item) => {
         const hit = byId.get(item.bookmarkId);
-        return hit ? [{ ...hit, ...(item.reason ? { aiReason: item.reason } : {}) }] : [];
+        return hit
+          ? [{ ...hit, ...(item.reason ? { aiReason: item.reason } : {}) }]
+          : [];
       });
       return this.result(input.q, items, expandedQueries, true, startedAt);
     } catch (error) {

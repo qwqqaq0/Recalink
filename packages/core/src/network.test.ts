@@ -13,7 +13,9 @@ describe("assertPublicAddress", () => {
     "fc00::1",
     "fe80::1"
   ])("rejects private or special address %s", (address) => {
-    expect(() => assertPublicAddress(address)).toThrow("不允许访问私有或特殊网络地址");
+    expect(() => assertPublicAddress(address)).toThrow(
+      "不允许访问私有或特殊网络地址"
+    );
   });
 
   it.each(["1.1.1.1", "8.8.8.8", "2606:4700:4700::1111"])(
@@ -23,4 +25,3 @@ describe("assertPublicAddress", () => {
     }
   );
 });
-

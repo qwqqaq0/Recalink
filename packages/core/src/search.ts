@@ -10,7 +10,9 @@ export function reciprocalRankFusion(rankings: string[][], k = 60): string[] {
       scores.set(id, (scores.get(id) ?? 0) + 1 / (k + index + 1));
     });
   }
-  return [...scores.entries()].sort((left, right) => right[1] - left[1]).map(([id]) => id);
+  return [...scores.entries()]
+    .sort((left, right) => right[1] - left[1])
+    .map(([id]) => id);
 }
 
 export function restrictRerankToCandidates(
