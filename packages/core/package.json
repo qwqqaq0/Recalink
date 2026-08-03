@@ -1,0 +1,19 @@
+{
+  "name": "@bookmark-recall/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bookmark-recall/contracts": "*",
+    "@mozilla/readability": "^0.6.0",
+    "jsdom": "^26.0.0"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.0"
+  }
+}
+
