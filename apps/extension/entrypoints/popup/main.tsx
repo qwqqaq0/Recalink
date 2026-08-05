@@ -2,6 +2,12 @@ import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { browser } from "wxt/browser";
 import { apiRequest, getConfig } from "../../lib/client.js";
+import {
+  chooseDefaultBookmarkTitle,
+  normalizeBookmarkTitle,
+  requireBookmarkTitle,
+  withBookmarkTitle
+} from "../../lib/title.js";
 import "./style.css";
 
 interface Folder {
@@ -50,17 +56,25 @@ function Popup() {
   const [configured, setConfigured] = useState(false);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [folderId, setFolderId] = useState("");
+  const [bookmarkTitle, setBookmarkTitle] = useState("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    void Promise.all([getConfig(), browser.bookmarks.getTree()])
-      .then(([config, tree]) => {
+    void Promise.all([
+      getConfig(),
+      browser.bookmarks.getTree(),
+      browser.tabs.query({ active: true, currentWindow: true })
+    ])
+      .then(([config, tree, [tab]]) => {
         setConfigured(Boolean(config.token));
         setFolderId(config.folderId ?? "");
         setFolders(foldersFrom(tree));
+        setBookmarkTitle(
+          chooseDefaultBookmarkTitle(tab?.title, tab?.url ?? "")
+        );
         return apiRequest("/health", undefined, false);
       })
       .then(() => setConnected(true))
@@ -82,18 +96,20 @@ function Popup() {
       });
       if (!tab?.id || !tab.url || !/^https?:/.test(tab.url))
         throw new Error("当前页面不是可收藏的 HTTP(S) 网页");
+      const finalTitle = requireBookmarkTitle(bookmarkTitle);
       const capture = (await browser.tabs.sendMessage(tab.id, {
         type: "bookmark-recall:capture"
       })) as Capture;
+      const titledCapture = withBookmarkTitle(capture, finalTitle);
       const created = await browser.bookmarks.create({
         ...(folderId ? { parentId: folderId } : {}),
-        title: capture.title || tab.title || tab.url,
+        title: finalTitle,
         url: tab.url
       });
       await apiRequest("/captures", {
         method: "POST",
         body: JSON.stringify({
-          ...capture,
+          ...titledCapture,
           sourceBookmarkId: created.id,
           ...(folderId ? { folderExternalId: folderId } : {})
         })
@@ -161,9 +177,21 @@ function Popup() {
             ))}
           </select>
         </label>
+        <label>
+          书签名称
+          <input
+            aria-label="书签名称"
+            maxLength={500}
+            value={bookmarkTitle}
+            onChange={(event) => setBookmarkTitle(event.target.value)}
+            placeholder="输入书签名称"
+          />
+        </label>
         <button
           className="save"
-          disabled={busy || !configured}
+          disabled={
+            busy || !configured || !normalizeBookmarkTitle(bookmarkTitle)
+          }
           onClick={() => void saveCurrent()}
         >
           ＋ 收藏当前网页并保存正文
