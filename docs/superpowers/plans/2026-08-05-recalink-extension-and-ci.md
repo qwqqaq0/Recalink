@@ -156,8 +156,8 @@ permissions: ["bookmarks", "storage", "activeTab"],
 
 Keep the existing localhost host permissions:
 
-```typescript
-host_permissions: ["http://127.0.0.1/*", "http://localhost/*"];
+```text
+host_permissions: ["http://127.0.0.1/*", "http://localhost/*"]
 ```
 
 - [ ] **Step 2: Build and enforce the exact permission set**
