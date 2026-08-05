@@ -37,6 +37,7 @@ Changing the Compose project name would make existing named volumes appear missi
 ### Task 1: Add a failing public-brand assertion
 
 **Files:**
+
 - Modify: `apps/web/src/App.test.tsx`
 
 - [ ] **Step 1: Assert the Recalink brand in the existing web test**
@@ -44,9 +45,7 @@ Changing the Compose project name would make existing named volumes appear missi
 Immediately after `render(<App />);`, add:
 
 ```typescript
-expect(
-  screen.getByRole("button", { name: "Recalink" })
-).toBeInTheDocument();
+expect(screen.getByRole("button", { name: "Recalink" })).toBeInTheDocument();
 ```
 
 - [ ] **Step 2: Run the test and verify it fails**
@@ -62,6 +61,7 @@ Expected: FAIL because the current accessible brand name is `Bookmark Recall`.
 ### Task 2: Rename npm workspaces and code imports atomically
 
 **Files:**
+
 - Modify: `package.json`
 - Modify: `package-lock.json`
 - Modify: `apps/api/package.json`
@@ -157,6 +157,7 @@ Expected: one buildable commit containing package metadata, imports, aliases, an
 ### Task 3: Rename the visible Web and extension product
 
 **Files:**
+
 - Modify: `apps/web/index.html`
 - Modify: `apps/web/src/App.tsx`
 - Modify: `apps/web/src/App.test.tsx`
@@ -221,6 +222,7 @@ Expected: one commit containing only user-facing brand changes and the already-a
 ### Task 4: Replace the README
 
 **Files:**
+
 - Replace: `README.md`
 
 - [ ] **Step 1: Replace README with verified public-facing content**
@@ -410,6 +412,7 @@ Expected: no output.
 ### Task 5: Add license, privacy, security, contribution, change, and conduct files
 
 **Files:**
+
 - Create: `LICENSE`
 - Create: `PRIVACY.md`
 - Create: `SECURITY.md`
@@ -631,6 +634,7 @@ Expected: one documentation-only commit.
 ### Task 6: Verify the rename and compatibility boundary
 
 **Files:**
+
 - Verify: all tracked files
 
 - [ ] **Step 1: Run the full verification**

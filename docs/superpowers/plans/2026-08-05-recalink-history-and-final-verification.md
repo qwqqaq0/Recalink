@@ -25,6 +25,7 @@ The old private address must be discovered from local history at execution time.
 ### Task 1: Establish the final content baseline
 
 **Files:**
+
 - Verify: all tracked files
 
 - [ ] **Step 1: Confirm branch, remote, and clean state**
@@ -73,6 +74,7 @@ Expected: all commands exit 0.
 ### Task 2: Run the Docker synthetic smoke test
 
 **Files:**
+
 - Verify: `docker-compose.yml`
 - Verify: `scripts/smoke-test.ts`
 
@@ -110,6 +112,7 @@ Expected: containers and network stop; no `-v` flag is used, so named volumes re
 ### Task 3: Scan the tracked public content
 
 **Files:**
+
 - Verify: all tracked files
 
 - [ ] **Step 1: Scan for personal paths, private mail domains, and high-signal secret formats**
@@ -167,6 +170,7 @@ Expected: `.env`, dependencies, builds, and extension output are ignored rather 
 ### Task 4: Create and verify the recovery bundle
 
 **Files:**
+
 - Write outside repository: a timestamped `recalink-before-email-rewrite-*.bundle` in the operating-system temporary directory
 - Modify locally only: `.git/config`
 
@@ -207,6 +211,7 @@ Expected: verification succeeds. Do not proceed if the file is absent or invalid
 ### Task 5: Set future identity and rewrite existing email metadata
 
 **Files:**
+
 - Modify locally only: `.git/config`
 - Rewrite: Git commit objects reachable from local refs
 
@@ -305,6 +310,7 @@ Expected: tree hashes and commit counts match, and the maintainer lines use only
 ### Task 6: Remove obsolete rewrite refs and unreachable private objects
 
 **Files:**
+
 - Delete locally: `refs/original/*` and expired reflog entries
 - Preserve outside repository: verified Git bundle
 
@@ -372,6 +378,7 @@ Expected: no private email and no `refs/original` output.
 ### Task 7: Perform post-rewrite final verification
 
 **Files:**
+
 - Verify: all tracked files and local Git metadata
 
 - [ ] **Step 1: Prove the final tree still matches**

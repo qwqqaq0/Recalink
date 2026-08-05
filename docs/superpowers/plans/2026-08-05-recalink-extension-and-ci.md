@@ -24,6 +24,7 @@
 ### Task 1: Prove that scripting is unused
 
 **Files:**
+
 - Read: `apps/extension`
 - Read: `apps/extension/wxt.config.ts`
 
@@ -52,6 +53,7 @@ Expected before the change: `bookmarks`, `storage`, `activeTab`, and `scripting`
 ### Task 2: Add a reproducible Recalink icon
 
 **Files:**
+
 - Create: `apps/extension/assets/icon.svg`
 - Modify: `apps/extension/package.json`
 - Modify: `package-lock.json`
@@ -140,6 +142,7 @@ Expected: generated `.output` files remain ignored and are not committed.
 ### Task 3: Remove the unused permission and test the built manifest
 
 **Files:**
+
 - Modify: `apps/extension/wxt.config.ts`
 - Verify: `apps/extension/.output/edge-mv3/manifest.json`
 
@@ -154,7 +157,7 @@ permissions: ["bookmarks", "storage", "activeTab"],
 Keep the existing localhost host permissions:
 
 ```typescript
-host_permissions: ["http://127.0.0.1/*", "http://localhost/*"]
+host_permissions: ["http://127.0.0.1/*", "http://localhost/*"];
 ```
 
 - [ ] **Step 2: Build and enforce the exact permission set**
@@ -204,6 +207,7 @@ Expected: one-file security-focused commit.
 ### Task 4: Add GitHub Actions verification
 
 **Files:**
+
 - Create: `.github/workflows/verify.yml`
 
 - [ ] **Step 1: Create the verification workflow**
@@ -288,6 +292,7 @@ Expected: one workflow-only commit.
 ### Task 5: Add issue and pull request templates
 
 **Files:**
+
 - Create: `.github/ISSUE_TEMPLATE/bug_report.md`
 - Create: `.github/ISSUE_TEMPLATE/feature_request.md`
 - Create: `.github/ISSUE_TEMPLATE/config.yml`
@@ -409,6 +414,7 @@ Expected: formatting passes and one templates-only commit is created.
 ### Task 6: Verify the extension and repository automation
 
 **Files:**
+
 - Verify: `apps/extension/.output/edge-mv3/manifest.json`
 - Verify: `.github`
 

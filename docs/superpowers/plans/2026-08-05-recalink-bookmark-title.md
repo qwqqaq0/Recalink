@@ -20,6 +20,7 @@
 ### Task 1: Record the extension baseline
 
 **Files:**
+
 - Read: `apps/extension/package.json`
 - Read: `apps/extension/entrypoints/popup/main.tsx`
 
@@ -56,6 +57,7 @@ Expected: exit code 0.
 ### Task 2: Add title-domain tests and pure helpers
 
 **Files:**
+
 - Create: `apps/extension/lib/title.test.ts`
 - Create: `apps/extension/lib/title.ts`
 
@@ -76,7 +78,10 @@ import {
 describe("bookmark title", () => {
   it("prefers a non-empty tab title", () => {
     expect(
-      chooseDefaultBookmarkTitle("  PostgreSQL 查询计划  ", "https://example.com")
+      chooseDefaultBookmarkTitle(
+        "  PostgreSQL 查询计划  ",
+        "https://example.com"
+      )
     ).toBe("PostgreSQL 查询计划");
   });
 
@@ -185,6 +190,7 @@ Expected: one commit containing only the helper and its tests.
 ### Task 3: Add the editable title to the popup
 
 **Files:**
+
 - Modify: `apps/extension/entrypoints/popup/main.tsx`
 - Modify: `apps/extension/entrypoints/popup/style.css`
 
@@ -224,9 +230,7 @@ useEffect(() => {
       setConfigured(Boolean(config.token));
       setFolderId(config.folderId ?? "");
       setFolders(foldersFrom(tree));
-      setBookmarkTitle(
-        chooseDefaultBookmarkTitle(tab?.title, tab?.url ?? "")
-      );
+      setBookmarkTitle(chooseDefaultBookmarkTitle(tab?.title, tab?.url ?? ""));
       return apiRequest("/health", undefined, false);
     })
     .then(() => setConnected(true))
@@ -261,7 +265,7 @@ body: JSON.stringify({
   ...titledCapture,
   sourceBookmarkId: created.id,
   ...(folderId ? { folderExternalId: folderId } : {})
-})
+});
 ```
 
 This ordering is required: `...titledCapture` already contains the user-confirmed title, so no extracted title can overwrite it.
@@ -337,6 +341,7 @@ Expected: one commit containing the popup behavior and styling.
 ### Task 4: Verify the end-to-end title contract
 
 **Files:**
+
 - Verify: `apps/extension/.output/edge-mv3`
 
 - [ ] **Step 1: Run all extension tests**
