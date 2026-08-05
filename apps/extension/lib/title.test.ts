@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyDefaultBookmarkTitle,
   chooseDefaultBookmarkTitle,
+  loadDefaultBookmarkTitle,
   MAX_BOOKMARK_TITLE_LENGTH,
   normalizeBookmarkTitle,
   requireBookmarkTitle,
@@ -44,5 +46,24 @@ describe("bookmark title helpers", () => {
       ...capture,
       title: "My bookmark"
     });
+  });
+  it("loads a default from the first active tab and tolerates query failures", async () => {
+    await expect(
+      loadDefaultBookmarkTitle(async () => [
+        { title: "  Active page  ", url: "https://example.com" }
+      ])
+    ).resolves.toBe("Active page");
+    await expect(
+      loadDefaultBookmarkTitle(async () => Promise.reject())
+    ).resolves.toBe("");
+  });
+
+  it("preserves a user edit instead of applying an async default", () => {
+    expect(applyDefaultBookmarkTitle("User title", "Async title", true)).toBe(
+      "User title"
+    );
+    expect(applyDefaultBookmarkTitle("", "Async title", false)).toBe(
+      "Async title"
+    );
   });
 });

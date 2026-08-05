@@ -1,9 +1,11 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { browser } from "wxt/browser";
 import { apiRequest, getConfig } from "../../lib/client.js";
 import {
-  chooseDefaultBookmarkTitle,
+  applyDefaultBookmarkTitle,
+  loadDefaultBookmarkTitle,
+  MAX_BOOKMARK_TITLE_LENGTH,
   normalizeBookmarkTitle,
   requireBookmarkTitle,
   withBookmarkTitle
@@ -57,6 +59,7 @@ function Popup() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [folderId, setFolderId] = useState("");
   const [bookmarkTitle, setBookmarkTitle] = useState("");
+  const bookmarkTitleEdited = useRef(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
   const [message, setMessage] = useState("");
@@ -66,14 +69,20 @@ function Popup() {
     void Promise.all([
       getConfig(),
       browser.bookmarks.getTree(),
-      browser.tabs.query({ active: true, currentWindow: true })
+      loadDefaultBookmarkTitle(() =>
+        browser.tabs.query({ active: true, currentWindow: true })
+      )
     ])
-      .then(([config, tree, [tab]]) => {
+      .then(([config, tree, defaultTitle]) => {
         setConfigured(Boolean(config.token));
         setFolderId(config.folderId ?? "");
         setFolders(foldersFrom(tree));
-        setBookmarkTitle(
-          chooseDefaultBookmarkTitle(tab?.title, tab?.url ?? "")
+        setBookmarkTitle((currentTitle) =>
+          applyDefaultBookmarkTitle(
+            currentTitle,
+            defaultTitle,
+            bookmarkTitleEdited.current
+          )
         );
         return apiRequest("/health", undefined, false);
       })
@@ -181,9 +190,12 @@ function Popup() {
           书签名称
           <input
             aria-label="书签名称"
-            maxLength={500}
+            maxLength={MAX_BOOKMARK_TITLE_LENGTH}
             value={bookmarkTitle}
-            onChange={(event) => setBookmarkTitle(event.target.value)}
+            onChange={(event) => {
+              bookmarkTitleEdited.current = true;
+              setBookmarkTitle(event.target.value);
+            }}
             placeholder="输入书签名称"
           />
         </label>

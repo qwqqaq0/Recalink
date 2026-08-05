@@ -12,6 +12,30 @@ export function chooseDefaultBookmarkTitle(
   return normalizedTitle || normalizeBookmarkTitle(url);
 }
 
+interface BookmarkTitleTab {
+  title?: string | undefined;
+  url?: string | undefined;
+}
+
+export async function loadDefaultBookmarkTitle(
+  queryActiveTabs: () => Promise<BookmarkTitleTab[]>
+): Promise<string> {
+  try {
+    const [tab] = await queryActiveTabs();
+    return chooseDefaultBookmarkTitle(tab?.title, tab?.url ?? "");
+  } catch {
+    return "";
+  }
+}
+
+export function applyDefaultBookmarkTitle(
+  currentTitle: string,
+  defaultTitle: string,
+  edited: boolean
+): string {
+  return edited ? currentTitle : defaultTitle;
+}
+
 export function requireBookmarkTitle(value: string): string {
   const title = normalizeBookmarkTitle(value);
 
