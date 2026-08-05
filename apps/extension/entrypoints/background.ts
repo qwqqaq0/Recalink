@@ -25,7 +25,7 @@ async function report(path: string, body: unknown) {
   try {
     await apiRequest(path, { method: "POST", body: JSON.stringify(body) });
   } catch (error) {
-    console.warn("Bookmark Recall 同步失败", error);
+    console.warn("Recalink 同步失败", error);
   }
 }
 

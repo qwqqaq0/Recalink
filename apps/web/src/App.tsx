@@ -143,7 +143,7 @@ function DetailDrawer({
   }
 
   async function remove() {
-    if (!window.confirm("仅从 Bookmark Recall 中移除？Edge 原收藏不会被删除。"))
+    if (!window.confirm("仅从 Recalink 中移除？Edge 原收藏不会被删除。"))
       return;
     setBusy(true);
     try {
@@ -496,8 +496,10 @@ export function App() {
           type="button"
           onClick={() => setView("search")}
         >
-          <span className="brand-mark">B</span>
-          <span>Bookmark Recall</span>
+          <span aria-hidden="true" className="brand-mark">
+            B
+          </span>
+          <span>Recalink</span>
         </button>
         <nav>
           <button

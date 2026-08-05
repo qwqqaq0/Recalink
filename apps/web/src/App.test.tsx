@@ -45,6 +45,9 @@ describe("App", () => {
     );
 
     render(<App />);
+    expect(
+      screen.getByRole("button", { name: "Recalink" })
+    ).toBeInTheDocument();
     fireEvent.change(
       screen.getByPlaceholderText("搜索标题、正文、标签或记得的大意…"),
       { target: { value: "索引未使用" } }

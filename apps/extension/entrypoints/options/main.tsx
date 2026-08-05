@@ -48,9 +48,9 @@ function Options() {
   return (
     <main>
       <div className="brand">
-        <span>B</span>
+        <span>R</span>
         <div>
-          <strong>Bookmark Recall</strong>
+          <strong>Recalink</strong>
           <small>Edge 扩展设置</small>
         </div>
       </div>

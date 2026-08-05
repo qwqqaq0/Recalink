@@ -151,9 +151,9 @@ function Popup() {
   return (
     <div className="popup">
       <header>
-        <div className="logo">B</div>
+        <div className="logo">R</div>
         <div>
-          <strong>Bookmark Recall</strong>
+          <strong>Recalink</strong>
           <small>
             <i className={connected ? "ok" : ""} />
             {connected === undefined
