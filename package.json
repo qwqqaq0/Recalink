@@ -1,5 +1,5 @@
 {
-  "name": "bookmark-recall",
+  "name": "recalink",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -18,11 +18,11 @@
     "lint": "eslint .",
     "format:check": "prettier --check .",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
-    "dev:api": "npm run dev -w @bookmark-recall/api",
-    "dev:worker": "npm run dev -w @bookmark-recall/worker",
-    "dev:web": "npm run dev -w @bookmark-recall/web",
-    "build:extension": "npm run build -w @bookmark-recall/extension",
-    "db:migrate": "npm run migrate -w @bookmark-recall/db",
+    "dev:api": "npm run dev -w @recalink/api",
+    "dev:worker": "npm run dev -w @recalink/worker",
+    "dev:web": "npm run dev -w @recalink/web",
+    "build:extension": "npm run build -w @recalink/extension",
+    "db:migrate": "npm run migrate -w @recalink/db",
     "eval:search": "tsx scripts/evaluate-search.ts",
     "smoke": "tsx scripts/smoke-test.ts"
   },

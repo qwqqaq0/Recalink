@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
-import { aiTagResponseSchema } from "@bookmark-recall/contracts";
+import { aiTagResponseSchema } from "@recalink/contracts";
 import {
   aiTagSuggestions,
   bookmarkTags,
   bookmarks,
   tags,
   type Database
-} from "@bookmark-recall/db";
+} from "@recalink/db";
 import { OpenAiCompatibleClient } from "./ai.js";
 
 export class TagSuggestionRepository {

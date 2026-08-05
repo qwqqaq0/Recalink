@@ -15,9 +15,9 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@bookmark-recall/contracts": ["packages/contracts/src/index.ts"],
-      "@bookmark-recall/core": ["packages/core/src/index.ts"],
-      "@bookmark-recall/db": ["packages/db/src/index.ts"]
+      "@recalink/contracts": ["packages/contracts/src/index.ts"],
+      "@recalink/core": ["packages/core/src/index.ts"],
+      "@recalink/db": ["packages/db/src/index.ts"]
     }
   }
 }

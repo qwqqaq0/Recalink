@@ -1,5 +1,5 @@
 {
-  "name": "@bookmark-recall/core",
+  "name": "@recalink/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@bookmark-recall/contracts": "*",
+    "@recalink/contracts": "*",
     "@mozilla/readability": "^0.6.0",
     "jsdom": "^26.0.0"
   },

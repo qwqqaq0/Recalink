@@ -7,14 +7,14 @@ import {
   edgeEventSchema,
   edgeSyncSchema,
   searchQuerySchema
-} from "@bookmark-recall/contracts";
+} from "@recalink/contracts";
 import type {
   BookmarkRepository,
   MeiliBookmarkIndex,
   SearchService,
   TagSuggestionRepository
-} from "@bookmark-recall/server";
-import { CAPTURE_QUEUE, INDEX_QUEUE, TAG_QUEUE } from "@bookmark-recall/server";
+} from "@recalink/server";
+import { CAPTURE_QUEUE, INDEX_QUEUE, TAG_QUEUE } from "@recalink/server";
 
 interface QueueSender {
   send(name: string, data: object): Promise<unknown>;

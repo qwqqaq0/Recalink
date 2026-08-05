@@ -1,8 +1,8 @@
 import {
   reciprocalRankFusion,
   restrictRerankToCandidates
-} from "@bookmark-recall/core";
-import type { AiExpansion } from "@bookmark-recall/contracts";
+} from "@recalink/core";
+import type { AiExpansion } from "@recalink/contracts";
 
 export interface SearchHit {
   id: string;

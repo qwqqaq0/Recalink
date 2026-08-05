@@ -1,5 +1,5 @@
 {
-  "name": "@bookmark-recall/worker",
+  "name": "@recalink/worker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@bookmark-recall/db": "*",
-    "@bookmark-recall/server": "*"
+    "@recalink/db": "*",
+    "@recalink/server": "*"
   }
 }

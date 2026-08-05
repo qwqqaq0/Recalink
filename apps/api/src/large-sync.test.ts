@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { BookmarkRepository } from "@bookmark-recall/server";
+import type { BookmarkRepository } from "@recalink/server";
 import { buildApp } from "./app.js";
 
 describe("large Edge full sync", () => {

@@ -1,4 +1,4 @@
-import type { EdgeSyncNode } from "@bookmark-recall/contracts";
+import type { EdgeSyncNode } from "@recalink/contracts";
 
 export interface FlatEdgeFolder {
   id: string;

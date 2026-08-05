@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { createDatabase } from "@bookmark-recall/db";
+import { createDatabase } from "@recalink/db";
 import {
   BookmarkRepository,
   createAiClientFromEnv,
@@ -13,7 +13,7 @@ import {
   SearchService,
   startQueue,
   TagSuggestionRepository
-} from "@bookmark-recall/server";
+} from "@recalink/server";
 import { buildApp } from "./app.js";
 
 const extensionToken = process.env.EXTENSION_API_TOKEN;

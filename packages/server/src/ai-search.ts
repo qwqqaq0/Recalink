@@ -1,4 +1,4 @@
-import { aiExpansionSchema, aiRerankSchema } from "@bookmark-recall/contracts";
+import { aiExpansionSchema, aiRerankSchema } from "@recalink/contracts";
 import type { AiSearchAssistant, SearchHit } from "./search-service.js";
 import { OpenAiCompatibleClient } from "./ai.js";
 

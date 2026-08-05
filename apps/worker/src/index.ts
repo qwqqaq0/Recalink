@@ -1,5 +1,5 @@
-import { createDatabase } from "@bookmark-recall/db";
-import { extractReadableContent, fetchPublicHtml } from "@bookmark-recall/core";
+import { createDatabase } from "@recalink/db";
+import { extractReadableContent, fetchPublicHtml } from "@recalink/core";
 import {
   BookmarkRepository,
   CAPTURE_QUEUE,
@@ -11,7 +11,7 @@ import {
   startQueue,
   TAG_QUEUE,
   TagSuggestionRepository
-} from "@bookmark-recall/server";
+} from "@recalink/server";
 
 const { db, pool } = createDatabase();
 const repository = new BookmarkRepository(db);

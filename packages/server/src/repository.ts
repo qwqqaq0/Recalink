@@ -4,8 +4,8 @@ import type {
   CapturePayload,
   EdgeEvent,
   EdgeSyncNode
-} from "@bookmark-recall/contracts";
-import { flattenEdgeTree, normalizeUrl } from "@bookmark-recall/core";
+} from "@recalink/contracts";
+import { flattenEdgeTree, normalizeUrl } from "@recalink/core";
 import {
   aiTagSuggestions,
   bookmarkSources,
@@ -15,7 +15,7 @@ import {
   pageContents,
   tags,
   type Database
-} from "@bookmark-recall/db";
+} from "@recalink/db";
 import type { BookmarkSearchDocument } from "./meili.js";
 
 type DatabaseTransaction = Parameters<

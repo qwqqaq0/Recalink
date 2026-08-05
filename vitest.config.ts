@@ -4,13 +4,13 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   resolve: {
     alias: {
-      "@bookmark-recall/contracts": fileURLToPath(
+      "@recalink/contracts": fileURLToPath(
         new URL("./packages/contracts/src/index.ts", import.meta.url)
       ),
-      "@bookmark-recall/core": fileURLToPath(
+      "@recalink/core": fileURLToPath(
         new URL("./packages/core/src/index.ts", import.meta.url)
       ),
-      "@bookmark-recall/db": fileURLToPath(
+      "@recalink/db": fileURLToPath(
         new URL("./packages/db/src/index.ts", import.meta.url)
       )
     }

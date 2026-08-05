@@ -11,9 +11,9 @@ COPY packages/db/package.json ./packages/db/package.json
 COPY packages/server/package.json ./packages/server/package.json
 RUN npm ci
 COPY . .
-RUN npm run build --workspace @bookmark-recall/web \
- && npm run build --workspace @bookmark-recall/api \
- && npm run build --workspace @bookmark-recall/worker
+RUN npm run build --workspace @recalink/web \
+ && npm run build --workspace @recalink/api \
+ && npm run build --workspace @recalink/worker
 
 FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production

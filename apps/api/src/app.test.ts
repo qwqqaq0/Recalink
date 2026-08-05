@@ -4,7 +4,7 @@ import type {
   BookmarkSearchDocument,
   MeiliBookmarkIndex,
   SearchService
-} from "@bookmark-recall/server";
+} from "@recalink/server";
 import { buildApp } from "./app.js";
 
 const health = async () => ({

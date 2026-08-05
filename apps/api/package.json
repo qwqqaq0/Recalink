@@ -1,5 +1,5 @@
 {
-  "name": "@bookmark-recall/api",
+  "name": "@recalink/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,9 +10,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@bookmark-recall/contracts": "*",
-    "@bookmark-recall/db": "*",
-    "@bookmark-recall/server": "*",
+    "@recalink/contracts": "*",
+    "@recalink/db": "*",
+    "@recalink/server": "*",
     "@fastify/cors": "^11.0.0",
     "@fastify/static": "^10.1.2",
     "drizzle-orm": "0.45.2",
