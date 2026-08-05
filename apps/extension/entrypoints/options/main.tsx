@@ -48,7 +48,7 @@ function Options() {
   return (
     <main>
       <div className="brand">
-        <span>R</span>
+        <span aria-hidden="true">R</span>
         <div>
           <strong>Recalink</strong>
           <small>Edge 扩展设置</small>

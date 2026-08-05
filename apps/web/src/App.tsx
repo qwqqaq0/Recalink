@@ -497,7 +497,7 @@ export function App() {
           onClick={() => setView("search")}
         >
           <span aria-hidden="true" className="brand-mark">
-            B
+            R
           </span>
           <span>Recalink</span>
         </button>

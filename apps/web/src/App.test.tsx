@@ -44,10 +44,11 @@ describe("App", () => {
       })
     );
 
-    render(<App />);
+    const { container } = render(<App />);
     expect(
       screen.getByRole("button", { name: "Recalink" })
     ).toBeInTheDocument();
+    expect(container.querySelector(".brand-mark")).toHaveTextContent("R");
     fireEvent.change(
       screen.getByPlaceholderText("搜索标题、正文、标签或记得的大意…"),
       { target: { value: "索引未使用" } }

@@ -151,7 +151,9 @@ function Popup() {
   return (
     <div className="popup">
       <header>
-        <div className="logo">R</div>
+        <div aria-hidden="true" className="logo">
+          R
+        </div>
         <div>
           <strong>Recalink</strong>
           <small>
