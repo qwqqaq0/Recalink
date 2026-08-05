@@ -58,7 +58,7 @@ docker compose up -d --build
 docker compose ps
 ```
 
-四个服务健康后打开 <http://127.0.0.1:3210>。PostgreSQL 和 Meilisearch 不映射到宿主机或局域网。
+PostgreSQL、Meilisearch 和 API 显示 `healthy`，且 worker 显示 `running` 或 `up` 后，打开 <http://127.0.0.1:3210>。PostgreSQL 和 Meilisearch 不映射到宿主机或局域网。
 
 ## 安装 Edge 扩展
 
