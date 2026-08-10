@@ -1,13 +1,57 @@
-import { createServer } from "node:http";
 import { once } from "node:events";
-import { describe, expect, it, vi } from "vitest";
+import {
+  createServer,
+  request as httpRequest,
+  type ClientRequest,
+  type IncomingMessage,
+  type RequestOptions
+} from "node:http";
+import { Readable } from "node:stream";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PUBLIC_HTML_USER_AGENT, fetchPublicHtml } from "./fetch.js";
 
+vi.mock("node:http", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:http")>();
+  return { ...actual, request: vi.fn(actual.request) };
+});
+
+afterEach(async () => {
+  const actual = await vi.importActual<typeof import("node:http")>("node:http");
+  vi.mocked(httpRequest).mockReset().mockImplementation(actual.request);
+});
+
 describe("fetchPublicHtml", () => {
-  it("identifies outgoing page fetches as Recalink", () => {
-    expect(PUBLIC_HTML_USER_AGENT).toBe(
-      "Recalink/0.1 (+local personal indexer)"
-    );
+  it("sends the Recalink user agent through the default HTTP fetcher", async () => {
+    let requestOptions: RequestOptions | undefined;
+    vi.mocked(httpRequest).mockImplementationOnce(((
+      _url: string | URL,
+      options: RequestOptions,
+      callback: (response: IncomingMessage) => void
+    ) => {
+      requestOptions = options;
+      const response = Readable.from([
+        Buffer.from("<article>Hello</article>")
+      ]) as unknown as IncomingMessage;
+      Object.assign(response, {
+        statusCode: 200,
+        statusMessage: "OK",
+        headers: { "content-type": "text/html; charset=utf-8" }
+      });
+      callback(response);
+      return {
+        on: vi.fn().mockReturnThis(),
+        end: vi.fn()
+      } as unknown as ClientRequest;
+    }) as typeof httpRequest);
+
+    await fetchPublicHtml("http://public.example/article", {
+      resolver: async () => ["1.1.1.1"]
+    });
+
+    const headers = requestOptions?.headers as
+      Record<string, string> | undefined;
+    expect(headers?.["user-agent"]).toBe(PUBLIC_HTML_USER_AGENT);
+    expect(PUBLIC_HTML_USER_AGENT).toMatch(/^Recalink\//u);
   });
 
   it("blocks a hostname that resolves to a private address before fetching", async () => {
