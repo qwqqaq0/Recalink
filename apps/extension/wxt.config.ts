@@ -1,7 +1,10 @@
 import { defineConfig } from "wxt";
 
 export default defineConfig({
-  modules: ["@wxt-dev/module-react"],
+  modules: ["@wxt-dev/module-react", "@wxt-dev/auto-icons"],
+  autoIcons: {
+    baseIconPath: "assets/icon.svg"
+  },
   manifest: {
     name: "Recalink",
     description: "将 Edge 收藏同步到 Recalink，保存网页正文并快速检索。",
