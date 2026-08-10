@@ -25,7 +25,7 @@ export interface PublicHtmlResult {
   finalUrl: string;
 }
 
-export const PUBLIC_HTML_USER_AGENT = "Recalink/0.1 (+local personal indexer)";
+const PUBLIC_HTML_USER_AGENT = "Recalink/0.1 (+local personal indexer)";
 
 const defaultResolver: Resolver = async (hostname) => {
   const unwrapped = hostname.replace(/^\[|\]$/gu, "");

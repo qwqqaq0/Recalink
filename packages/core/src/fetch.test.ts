@@ -8,7 +8,8 @@ import {
 } from "node:http";
 import { Readable } from "node:stream";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PUBLIC_HTML_USER_AGENT, fetchPublicHtml } from "./fetch.js";
+import { fetchPublicHtml } from "./fetch.js";
+import * as coreApi from "./index.js";
 
 vi.mock("node:http", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:http")>();
@@ -50,8 +51,13 @@ describe("fetchPublicHtml", () => {
 
     const headers = requestOptions?.headers as
       Record<string, string> | undefined;
-    expect(headers?.["user-agent"]).toBe(PUBLIC_HTML_USER_AGENT);
-    expect(PUBLIC_HTML_USER_AGENT).toMatch(/^Recalink\//u);
+    expect(headers?.["user-agent"]).toBe(
+      "Recalink/0.1 (+local personal indexer)"
+    );
+  });
+
+  it("keeps the fetch user agent out of the core package API", () => {
+    expect(coreApi).not.toHaveProperty("PUBLIC_HTML_USER_AGENT");
   });
 
   it("blocks a hostname that resolves to a private address before fetching", async () => {
