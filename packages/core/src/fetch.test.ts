@@ -1,9 +1,15 @@
 import { createServer } from "node:http";
 import { once } from "node:events";
 import { describe, expect, it, vi } from "vitest";
-import { fetchPublicHtml } from "./fetch.js";
+import { PUBLIC_HTML_USER_AGENT, fetchPublicHtml } from "./fetch.js";
 
 describe("fetchPublicHtml", () => {
+  it("identifies outgoing page fetches as Recalink", () => {
+    expect(PUBLIC_HTML_USER_AGENT).toBe(
+      "Recalink/0.1 (+local personal indexer)"
+    );
+  });
+
   it("blocks a hostname that resolves to a private address before fetching", async () => {
     const fetcher = vi.fn();
     await expect(

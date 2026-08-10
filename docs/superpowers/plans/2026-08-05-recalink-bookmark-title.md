@@ -39,7 +39,7 @@ Expected: exit code 0 and no change to `package-lock.json`.
 Run:
 
 ```powershell
-npm test --workspace @bookmark-recall/extension -- --run
+npm test --workspace @recalink/extension -- --run
 ```
 
 Expected: the existing capture and sync suites pass.
@@ -49,7 +49,7 @@ Expected: the existing capture and sync suites pass.
 Run:
 
 ```powershell
-npm run typecheck --workspace @bookmark-recall/extension
+npm run typecheck --workspace @recalink/extension
 ```
 
 Expected: exit code 0.
@@ -312,7 +312,7 @@ Run:
 
 ```powershell
 npx vitest run apps/extension/lib/title.test.ts apps/extension/lib/capture.test.ts
-npm run typecheck --workspace @bookmark-recall/extension
+npm run typecheck --workspace @recalink/extension
 ```
 
 Expected: all focused tests pass and typecheck exits 0.
@@ -322,7 +322,7 @@ Expected: all focused tests pass and typecheck exits 0.
 Run:
 
 ```powershell
-npm run build --workspace @bookmark-recall/extension
+npm run build --workspace @recalink/extension
 ```
 
 Expected: WXT produces `apps/extension/.output/edge-mv3` without warnings about invalid manifest fields.
@@ -349,7 +349,7 @@ Expected: one commit containing the popup behavior and styling.
 Run:
 
 ```powershell
-npm test --workspace @bookmark-recall/extension -- --run
+npm test --workspace @recalink/extension -- --run
 ```
 
 Expected: capture, sync, and title suites pass.

@@ -25,6 +25,8 @@ export interface PublicHtmlResult {
   finalUrl: string;
 }
 
+export const PUBLIC_HTML_USER_AGENT = "Recalink/0.1 (+local personal indexer)";
+
 const defaultResolver: Resolver = async (hostname) => {
   const unwrapped = hostname.replace(/^\[|\]$/gu, "");
   if (isIP(unwrapped)) return [unwrapped];
@@ -62,7 +64,7 @@ const fetchPinned: PinnedFetcher = async (url, address, signal) =>
         signal,
         headers: {
           accept: "text/html,application/xhtml+xml",
-          "user-agent": "BookmarkRecall/0.1 (+local personal indexer)"
+          "user-agent": PUBLIC_HTML_USER_AGENT
         }
       },
       (incoming) => {
