@@ -40,7 +40,7 @@ git status --short
 
 Expected:
 
-- branch is `main`;
+- branch is `recalink/public-alpha`;
 - `git remote -v` prints nothing;
 - `git status --short` prints nothing.
 
@@ -53,11 +53,12 @@ Run:
 ```powershell
 git config recalink.preRewriteHead (git rev-parse HEAD)
 git config recalink.preRewriteTree (git rev-parse "HEAD^{tree}")
-git config recalink.preRewriteCommitCount (git rev-list --count --all)
+git config recalink.preRewriteBranch (git branch --show-current)
+git config recalink.preRewriteCommitCount (git rev-list --count --branches --tags)
 git config --get-regexp "^recalink\.preRewrite"
 ```
 
-Expected: HEAD, root tree hash, and commit count are printed. These settings live only in `.git/config` and are not committed.
+Expected: HEAD, root tree hash, current public-preparation branch, and the commit count reachable from local branches and tags are printed. These settings live only in `.git/config` and are not committed.
 
 - [ ] **Step 3: Run the full repository verification**
 
@@ -285,7 +286,7 @@ Remove-Item Env:RECALINK_NEW_EMAIL
 Remove-Item Env:FILTER_BRANCH_SQUELCH_WARNING
 ```
 
-Expected: Git rewrites commits and updates `main`. Commit messages, author names, dates, and file trees remain unchanged; commit hashes change.
+Expected: Git rewrites commits reachable from local refs, including `recalink/public-alpha`, while keeping the recorded branch checked out. Commit messages, author names, dates, and file trees remain unchanged; commit hashes change.
 
 - [ ] **Step 4: Compare the rewritten content and commit count before deleting backup refs**
 
@@ -297,12 +298,17 @@ $actualTree = git rev-parse "HEAD^{tree}"
 if ($actualTree -ne $expectedTree) {
   throw "Tree changed during email-only rewrite"
 }
+$expectedBranch = git config --get recalink.preRewriteBranch
+$actualBranch = git branch --show-current
+if ($actualBranch -ne $expectedBranch) {
+  throw "Checked-out branch changed during rewrite"
+}
 $expectedCount = [int](git config --get recalink.preRewriteCommitCount)
-$actualCount = [int](git rev-list --count main)
+$actualCount = [int](git rev-list --count --branches --tags)
 if ($actualCount -ne $expectedCount) {
   throw "Commit count changed during rewrite"
 }
-git log main --format="%an <%ae> | %cn <%ce>" | Sort-Object -Unique
+git log $expectedBranch --format="%an <%ae> | %cn <%ce>" | Sort-Object -Unique
 ```
 
 Expected: tree hashes and commit counts match, and the maintainer lines use only the noreply address.
@@ -344,7 +350,7 @@ foreach ($ref in $originalRefs) {
 }
 ```
 
-Expected: only refs under `refs/original/` are deleted. `main` remains untouched.
+Expected: only refs under `refs/original/` are deleted. The recorded `recalink/public-alpha` branch remains checked out and untouched by this cleanup step.
 
 - [ ] **Step 3: Expire reflogs and prune unreachable objects**
 
