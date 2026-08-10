@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  cleanCapturedText,
   chooseCapturedContent,
   chooseCapturedText,
   prepareCaptureInputs
@@ -27,6 +28,43 @@ describe("chooseCapturedText", () => {
 });
 
 describe("prepareCaptureInputs", () => {
+  it("excludes content hidden by rendered styles and accessibility state", () => {
+    document.head.innerHTML = `<style>
+      .secret, .secret-heading { display: none; }
+      .invisible { visibility: hidden; }
+      .transparent { opacity: 0; }
+    </style>`;
+    document.body.innerHTML = `
+      <article>
+        <h1>Visible article heading</h1>
+        <p>Useful rendered term capture-visible-4e8d remains searchable.</p>
+        <p class="secret">css-secret-text</p>
+        <h2 class="secret-heading">css-secret-heading</h2>
+        <p hidden>hidden-attribute-text</p>
+        <h2 aria-hidden="true">aria-hidden-heading</h2>
+        <p class="invisible">visibility-secret-text</p>
+        <p class="transparent">opacity-secret-text</p>
+      </article>
+      <form>
+        <h2>form-secret-heading</h2>
+        <label>form-secret-label</label>
+      </form>`;
+
+    const inputs = prepareCaptureInputs(document);
+    const captured = chooseCapturedContent("", inputs.visibleText);
+
+    expect(captured.plainText).toContain("capture-visible-4e8d");
+    expect(captured.plainText).not.toMatch(
+      /css-secret|hidden-attribute|aria-hidden|visibility-secret|opacity-secret|form-secret/
+    );
+    expect(inputs.headings).toEqual(["Visible article heading"]);
+    expect(inputs.readabilityDocument.body.textContent).not.toMatch(
+      /css-secret|hidden-attribute|aria-hidden|visibility-secret|opacity-secret|form-secret/
+    );
+    expect(document.querySelector(".secret")).not.toBeNull();
+    expect(document.querySelector("form")).not.toBeNull();
+  });
+
   it("excludes form content from Readability, fallback text, and headings", () => {
     const source = new DOMParser().parseFromString(
       `<html><body>
@@ -54,5 +92,16 @@ describe("prepareCaptureInputs", () => {
     );
     expect(inputs.headings).toEqual(["Ordinary article heading"]);
     expect(inputs.readabilityDocument.querySelector("form")).toBeNull();
+  });
+});
+
+describe("cleanCapturedText", () => {
+  it("truncates captured text at exactly 500,000 characters", () => {
+    const limit = "a".repeat(500_000);
+
+    const captured = cleanCapturedText(`${limit}must-not-cross-boundary`);
+
+    expect(captured).toHaveLength(500_000);
+    expect(captured).toBe(limit);
   });
 });

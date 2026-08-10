@@ -7,17 +7,65 @@ export interface CaptureInputs {
   headings: string[];
 }
 
+function createCaptureVisibilityChecker(source: Document) {
+  const visibility = new WeakMap<Element, boolean>();
+  const view = source.defaultView;
+
+  function isVisible(element: Element): boolean {
+    const cached = visibility.get(element);
+    if (cached !== undefined) return cached;
+
+    const parentVisible = element.parentElement
+      ? isVisible(element.parentElement)
+      : true;
+    const style = view?.getComputedStyle(element);
+    const visible =
+      parentVisible &&
+      !element.matches(REMOVED_CAPTURE_SELECTORS) &&
+      !(element instanceof HTMLElement && element.hidden) &&
+      element.getAttribute("aria-hidden")?.trim().toLowerCase() !== "true" &&
+      style?.display !== "none" &&
+      style?.visibility !== "hidden" &&
+      style?.visibility !== "collapse" &&
+      style?.opacity !== "0";
+    visibility.set(element, visible);
+    return visible;
+  }
+
+  return isVisible;
+}
+
+function visibleTextWithin(
+  source: Document,
+  root: Node,
+  isVisible: (element: Element) => boolean
+): string {
+  const walker = source.createTreeWalker(root, 4);
+  const parts: string[] = [];
+  let node = walker.nextNode();
+  while (node) {
+    if (node.parentElement && isVisible(node.parentElement)) {
+      parts.push(node.textContent ?? "");
+    }
+    node = walker.nextNode();
+  }
+  return cleanCapturedText(parts.join(" "));
+}
+
 export function prepareCaptureInputs(source: Document): CaptureInputs {
+  const isVisible = createCaptureVisibilityChecker(source);
   const sanitized = source.cloneNode(true) as Document;
-  sanitized
-    .querySelectorAll(REMOVED_CAPTURE_SELECTORS)
-    .forEach((node) => node.remove());
-  const body = sanitized.body as HTMLElement | null;
-  const visibleText = cleanCapturedText(
-    body?.innerText ?? body?.textContent ?? ""
-  );
-  const headings = Array.from(sanitized.querySelectorAll("h1,h2,h3"))
-    .map((node) => cleanCapturedText(node.textContent ?? ""))
+  const sourceElements = Array.from(source.querySelectorAll("*"));
+  const sanitizedElements = Array.from(sanitized.querySelectorAll("*"));
+  sourceElements.forEach((element, index) => {
+    if (!isVisible(element)) sanitizedElements[index]?.remove();
+  });
+  const visibleText = source.body
+    ? visibleTextWithin(source, source.body, isVisible)
+    : "";
+  const headings = Array.from(source.querySelectorAll("h1,h2,h3"))
+    .filter(isVisible)
+    .map((heading) => visibleTextWithin(source, heading, isVisible))
     .filter(Boolean)
     .slice(0, 100);
 
