@@ -1,3 +1,33 @@
+const REMOVED_CAPTURE_SELECTORS =
+  "script,style,noscript,form,input,textarea,select,button";
+
+export interface CaptureInputs {
+  readabilityDocument: Document;
+  visibleText: string;
+  headings: string[];
+}
+
+export function prepareCaptureInputs(source: Document): CaptureInputs {
+  const sanitized = source.cloneNode(true) as Document;
+  sanitized
+    .querySelectorAll(REMOVED_CAPTURE_SELECTORS)
+    .forEach((node) => node.remove());
+  const body = sanitized.body as HTMLElement | null;
+  const visibleText = cleanCapturedText(
+    body?.innerText ?? body?.textContent ?? ""
+  );
+  const headings = Array.from(sanitized.querySelectorAll("h1,h2,h3"))
+    .map((node) => cleanCapturedText(node.textContent ?? ""))
+    .filter(Boolean)
+    .slice(0, 100);
+
+  return {
+    readabilityDocument: sanitized.cloneNode(true) as Document,
+    visibleText,
+    headings
+  };
+}
+
 export function cleanCapturedText(value: string) {
   return value
     .replaceAll("\u0000", "")

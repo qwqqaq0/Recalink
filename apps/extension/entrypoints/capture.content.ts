@@ -1,6 +1,6 @@
 import { Readability } from "@mozilla/readability";
 import { browser } from "wxt/browser";
-import { chooseCapturedContent, cleanCapturedText } from "../lib/capture.js";
+import { chooseCapturedContent, prepareCaptureInputs } from "../lib/capture.js";
 
 export default defineContentScript({
   matches: ["http://*/*", "https://*/*"],
@@ -8,21 +8,11 @@ export default defineContentScript({
     browser.runtime.onMessage.addListener((message: unknown) => {
       if ((message as { type?: string })?.type !== "bookmark-recall:capture")
         return undefined;
-      const clone = document.cloneNode(true) as Document;
-      clone
-        .querySelectorAll(
-          "script,style,noscript,form,input,textarea,select,button"
-        )
-        .forEach((node) => node.remove());
-      const article = new Readability(clone).parse();
-      const fallback = (document.body as HTMLElement | null)?.innerText ?? "";
-      const headings = Array.from(document.querySelectorAll("h1,h2,h3"))
-        .map((node) => cleanCapturedText(node.textContent ?? ""))
-        .filter(Boolean)
-        .slice(0, 100);
+      const inputs = prepareCaptureInputs(document);
+      const article = new Readability(inputs.readabilityDocument).parse();
       const captured = chooseCapturedContent(
         article?.textContent ?? "",
-        fallback
+        inputs.visibleText
       );
       return Promise.resolve({
         url: location.href,
@@ -34,7 +24,7 @@ export default defineContentScript({
             ?.getAttribute("content") ||
           "",
         ...captured,
-        headings,
+        headings: inputs.headings,
         language: document.documentElement.lang || "und"
       });
     });
