@@ -1,5 +1,7 @@
 # Recalink Brand and Public Documentation Implementation Plan
 
+> 2026-09-07 更新：项目目前由单人初步维护，贡献指南和行为准则已暂时移除。下文相关内容仅保留为历史计划，不代表当前规则或待执行任务。
+
 > Historical plan: the smoke-test examples below have been superseded. Use `npm run smoke` as documented in the current [README](../../../README.md#开发与验证), which creates an isolated test database and volumes.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

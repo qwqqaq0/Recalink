@@ -165,10 +165,10 @@ docker compose down
 
 ## 项目文档
 
+当前项目处于初步单人维护阶段，暂不设独立的贡献指南和行为准则。
+
 - [隐私说明](PRIVACY.md)
 - [安全政策](SECURITY.md)
-- [贡献指南](CONTRIBUTING.md)
 - [变更记录](CHANGELOG.md)
-- [行为准则](CODE_OF_CONDUCT.md)
 
 Recalink 使用 [MIT License](LICENSE)。
