@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { requireEmptySmokeDatabase } from "./smoke-safety.js";
 
 const apiUrl = (process.env.SMOKE_API_URL ?? "http://127.0.0.1:3210").replace(
   /\/$/u,
@@ -73,6 +74,7 @@ async function capture(
 }
 
 async function main() {
+  await requireEmptySmokeDatabase();
   const suffix = randomUUID().slice(0, 8);
   const url = `https://lifecycle.invalid/shared-${suffix}`;
   const newUrl = `https://lifecycle.invalid/changed-${suffix}`;

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import pg from "pg";
+import { requireEmptySmokeDatabase } from "./smoke-safety.js";
 
 const apiUrl = (process.env.SMOKE_API_URL ?? "http://127.0.0.1:3210").replace(
   /\/$/u,
@@ -56,6 +57,7 @@ interface SearchResponse {
 }
 
 async function main() {
+  await requireEmptySmokeDatabase();
   const suffix = randomUUID().slice(0, 8);
   const marker = `recall-unique-${suffix}`;
   const externalId = `smoke-bookmark-${suffix}`;

@@ -109,15 +109,22 @@ docker compose up -d --build api worker
 ```powershell
 npm ci
 npm run verify
-npm audit --audit-level=low
+npm audit --audit-level=low --offline=false
 ```
 
-Docker 合成烟雾测试不会读取真实 Edge 数据：
+Docker 合成烟雾测试（需要 Docker 引擎正在运行）：
 
 ```powershell
-docker compose up -d --build
-docker compose exec -T api node --import tsx scripts/smoke-test.ts
+npm run smoke
+# 可选：共享来源、URL 变更和全量同步清理的生命周期测试
+npm run smoke -- --lifecycle
 ```
+
+每次运行会使用 `compose.smoke.json` 创建随机命名的 `recalink-smoke-*` 项目，使用独立数据库、搜索索引和数据卷，不映射宿主机端口。配置中的凭据仅用于合成测试，AI 强制关闭，应用配置不从个人 `.env` 读取。成功或失败后会尝试删除该次测试的容器、网络和测试数据卷；如果 Docker 无响应导致清理失败，终端会输出该次项目的精确清理命令。
+
+不要在日常使用的 API 容器里直接执行 `scripts/smoke-test.ts` 或 `scripts/lifecycle-smoke.ts`。全量同步测试会移除不在合成树中的书签来源，因此脚本会在第一次 API 请求前拒绝非隔离环境或非空数据库。不会读取真实 Edge 收藏，也不应连接已有收藏数据库。
+
+当前验证范围（2026-09-05）：本地格式、类型、74 项单元测试与生产构建（含 Edge 扩展）已通过；更新依赖后的 Docker 构建、基础合成闭环与生命周期烟雾测试已通过，Linux 容器联网依赖审计为 0 项漏洞。Edge 扩展手动端到端验收仍待完成。GitHub Actions 配置已提供，公开仓库首次运行结果尚未验证。这些结果不代表完整安全审计或稳定版验收。
 
 搜索评估数据格式见 `fixtures/evaluation.sample.json`：
 

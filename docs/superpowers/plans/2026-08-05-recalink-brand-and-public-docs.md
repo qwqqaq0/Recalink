@@ -1,5 +1,7 @@
 # Recalink Brand and Public Documentation Implementation Plan
 
+> Historical plan: the smoke-test examples below have been superseded. Use `npm run smoke` as documented in the current [README](../../../README.md#开发与验证), which creates an isolated test database and volumes.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Rename the public product and workspace packages to Recalink and make the repository understandable, governable, and privacy-transparent as a local-first public Alpha.

@@ -24,7 +24,7 @@
     "build:extension": "npm run build -w @recalink/extension",
     "db:migrate": "npm run migrate -w @recalink/db",
     "eval:search": "tsx scripts/evaluate-search.ts",
-    "smoke": "tsx scripts/smoke-test.ts"
+    "smoke": "tsx scripts/run-smoke.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

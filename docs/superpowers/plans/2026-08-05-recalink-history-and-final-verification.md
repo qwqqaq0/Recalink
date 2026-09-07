@@ -1,5 +1,7 @@
 # Recalink History and Final Verification Implementation Plan
 
+> Historical plan: do not run the old smoke-test commands against an application container. Use `npm run smoke` as documented in the current [README](../../../README.md#开发与验证), which creates an isolated test database and volumes.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Prove the local Recalink Alpha is safe to review publicly, create a recoverable repository backup, rewrite only the maintainer's private commit email, and stop without creating or pushing a remote.

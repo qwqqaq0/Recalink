@@ -14,12 +14,14 @@ Copy-Item .env.example .env
 npm run verify
 ```
 
-涉及数据库、检索或队列时，再启动 Docker 服务并运行合成烟雾测试：
+涉及数据库、检索或队列时，确保 Docker 引擎正在运行，然后使用独立合成测试环境：
 
 ```powershell
-docker compose up -d --build
-docker compose exec -T api node --import tsx scripts/smoke-test.ts
+npm run smoke
+npm run smoke -- --lifecycle
 ```
+
+两条命令分别创建并清理独立的临时 Compose 项目及测试数据卷。请勿在已有收藏数据库上直接执行底层测试脚本；它们包含全量同步和移除操作。隔离方式及验证范围见 [README](README.md#开发与验证)。
 
 ## 提交要求
 
