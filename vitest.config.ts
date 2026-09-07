@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
 export default defineConfig({
@@ -16,6 +16,7 @@ export default defineConfig({
     }
   },
   test: {
+    exclude: [...configDefaults.exclude, "**/.worktrees/**"],
     environment: "node",
     coverage: {
       provider: "v8",
